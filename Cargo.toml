@@ -1,0 +1,16 @@
+[package]
+name = "openbas-implant"
+version = "1.0.9"
+edition = "2021"
+
+[dependencies]
+ureq = { version = "2.1", features = ["tls", "json"] }
+serde = { version = "1.0.203", features = ["derive"] }
+log = { version = "0.4.21", features = ["kv"] }
+base64 = "0.22.1"
+mid = "2.0.0"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["json"] }
+tracing-appender = "0.2.3"
+rolling-file = "0.2.0"
+clap = { version = "4.5.7", features = ["derive"] }
