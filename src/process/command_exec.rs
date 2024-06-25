@@ -14,7 +14,7 @@ pub struct ExecutionResult {
 }
 
 #[cfg(target_os = "windows")]
-pub fn command_execution(command: &str) -> Result<ExecutionResult, Error> {
+pub fn command_execution(command: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
     let invoke_expression = format!("Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(command));
     let invoke_output = Command::new("cmd.exe")
         .args(&["/d", "/c", "powershell.exe", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-NonInteractive", "-NoProfile", "-Command", &invoke_expression])
@@ -23,12 +23,13 @@ pub fn command_execution(command: &str) -> Result<ExecutionResult, Error> {
         .spawn()?.wait_with_output();
     let invoke_result = invoke_output.unwrap().clone();
     // 0 success | other = maybe prevented
-    let exit_code = invoke_result.status.code().unwrap_or_else(|| -42);
+    let exit_code = invoke_result.status.code().unwrap_or_else(|| -99);
     let stdout =  String::from_utf8 (invoke_result.stdout).unwrap();
     let stderr = String::from_utf8 (invoke_result.stderr).unwrap();
     let exit_status = match exit_code {
         0 => "SUCCESS",
-        -42 => "ERROR",
+        1 => if pre_check { "SUCCESS" } else { "MAYBE_PREVENTED" }
+        -99 => "ERROR",
         _ => "MAYBE_PREVENTED"
     };
     return Ok(ExecutionResult {

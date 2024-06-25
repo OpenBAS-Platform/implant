@@ -10,6 +10,8 @@ use clap::Parser;
 use log::{info};
 use regex::Regex;
 use rolling_file::{BasicRollingFileAppender, RollingConditionBasic};
+use serde::{Deserialize, Serialize};
+use ureq::serde_json;
 use crate::api::Client;
 use crate::api::manage_inject::{InjectResponse, UpdateInput};
 use crate::common::error_model::Error;
@@ -78,19 +80,30 @@ pub fn compute_command(command: &String, inject_data: &InjectResponse) -> String
     return executable_command.replace("#{location}", working_dir.to_str().unwrap());
 }
 
-pub fn handle_execution_result(semantic: &str, api: &Client, inject_id: String, command: &String) -> i32 {
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ExecutionOutput {
+    pub action: String,
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: i32,
+}
+
+pub fn handle_execution_result(semantic: &str, api: &Client, inject_id: String, command: &String, pre_check: bool) -> i32 {
     let now = Instant::now();
-    println!("{} execution: {:?}", semantic, command);
-    let command_result = command_execution(command.as_str());
+    info!("{} execution: {:?}", semantic, command);
+    let command_result = command_execution(command.as_str(), pre_check);
     let elapsed = now.elapsed().as_millis();
     return match command_result {
         Ok(res) => {
-            println!("{} execution stdout: {:?}", semantic, res.stdout);
-            println!("{} execution stderr: {:?}", semantic, res.stderr);
+            info!("{} execution stdout: {:?}", semantic, res.stdout);
+            info!("{} execution stderr: {:?}", semantic, res.stderr);
             let stdout = res.stdout;
             let stderr = res.stderr;
+            let exit_code = res.exit_code;
+            let message = ExecutionOutput { action: String::from(semantic), stdout, stderr, exit_code };
+            let execution_message = serde_json::to_string(&message).unwrap();
             let _ = api.update_status(inject_id, UpdateInput {
-                execution_message: format!("stdout: {stdout}, stderr: {stderr}"),
+                execution_message,
                 execution_status: res.status,
                 execution_duration: elapsed
             });
@@ -98,9 +111,13 @@ pub fn handle_execution_result(semantic: &str, api: &Client, inject_id: String, 
             res.exit_code
         }
         Err(err) => {
-            println!("implant execution error {:?}", err);
+            info!("implant execution error: {:?}", err);
+            let stderr = format!("{:?}", err);
+            let stdout = String::new();
+            let message = ExecutionOutput { action: String::from(semantic), stderr, stdout, exit_code: -1 };
+            let execution_message = serde_json::to_string(&message).unwrap();
             let _ = api.update_status(inject_id, UpdateInput {
-                execution_message: format!("stderr: {err}"),
+                execution_message,
                 execution_status: String::from("ERROR"),
                 execution_duration: elapsed
             });
@@ -121,13 +138,13 @@ pub fn handle_command(inject_id: String, api: &Client, inject_data: &InjectRespo
         if check_cmd.is_some() {
             let check_prerequisites = compute_command(check_cmd.as_ref().unwrap(), &inject_data);
             check_status = handle_execution_result("prerequisite check", &api,
-                                                   inject_id.clone(), &check_prerequisites);
+                                                   inject_id.clone(), &check_prerequisites, true);
         }
         // If exit 0, prerequisite are already satisfied
         if check_status != 0 {
             let install_prerequisites = compute_command(&prerequisite.get_command, &inject_data);
-            prerequisites_code += handle_execution_result("prerequisite install", &api,
-                                                   inject_id.clone(), &install_prerequisites);
+            prerequisites_code += handle_execution_result("prerequisite execution", &api,
+                                                   inject_id.clone(), &install_prerequisites, false);
         }
     }
     // endregion
@@ -136,8 +153,8 @@ pub fn handle_command(inject_id: String, api: &Client, inject_data: &InjectRespo
     if prerequisites_code == 0 {
         let command = contract_payload.command_content.clone().unwrap();
         let executable_command = compute_command(&command, &inject_data);
-        let _ = handle_execution_result("implant", &api,
-                                        inject_id.clone(), &executable_command);
+        let _ = handle_execution_result("implant execution", &api,
+                                        inject_id.clone(), &executable_command, false);
     } else {
         let _ = api.update_status(inject_id.clone(), UpdateInput {
             execution_message: String::from("Payload execution not executed due to dependencies failure."),
@@ -151,8 +168,8 @@ pub fn handle_command(inject_id: String, api: &Client, inject_data: &InjectRespo
     let cleanup = contract_payload.payload_cleanup_command.clone();
     if cleanup.is_some() {
         let executable_cleanup = compute_command(&cleanup.unwrap(), &inject_data);
-        let _ = handle_execution_result("cleanup", &api,
-                                        inject_id.clone(), &executable_cleanup);
+        let _ = handle_execution_result("prerequisite cleanup", &api,
+                                        inject_id.clone(), &executable_cleanup, false);
     }
     // endregion
 }

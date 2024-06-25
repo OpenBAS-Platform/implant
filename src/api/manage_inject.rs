@@ -85,9 +85,7 @@ impl Client {
         return match self.post(&format!("/api/injects/execution/callback/{}", inject_id)).send_json(post_data) {
             Ok(response) => Ok(response.into_json()?),
             Err(ureq::Error::Status(_, response)) => {
-                let test = response.into_string().unwrap();
-                println!("ERROR> {}", test);
-                Err(Error::Api(test))
+                Err(Error::Api(response.into_string().unwrap()))
             }
             Err(err) => Err(Error::Internal(err.to_string())),
         };
