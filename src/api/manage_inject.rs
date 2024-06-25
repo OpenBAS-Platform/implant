@@ -13,6 +13,14 @@ pub struct PayloadArg {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct PayloadPrerequisite {
+    pub executor: String,
+    pub get_command: String,
+    pub check_command: Option<String>,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct InjectorContractPayload {
     pub payload_id: String,
     pub payload_type: String,
@@ -20,7 +28,7 @@ pub struct InjectorContractPayload {
     // FileDrop
     pub file_drop_file: Option<String>,
     // Prerequisites
-    pub payload_prerequisites: Option<String>,
+    pub payload_prerequisites: Vec<PayloadPrerequisite>,
     // Command
     pub command_executor: Option<String>,
     pub command_content: Option<String>,
@@ -85,16 +93,3 @@ impl Client {
         };
     }
 }
-
-/*
-    DRAFT,
-    INFO,
-    QUEUING,
-    EXECUTING,
-    PENDING,
-    PARTIAL,
-    ERROR,
-    MAYBE_PARTIAL_PREVENTED,
-    MAYBE_PREVENTED,
-    SUCCESS
- */

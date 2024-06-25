@@ -3,6 +3,7 @@ mod api;
 mod process;
 
 use std::env;
+use std::path::{PathBuf};
 use std::sync::atomic::{AtomicBool};
 use std::time::Instant;
 use clap::Parser;
@@ -35,7 +36,7 @@ pub fn mode() -> String {
 }
 
 pub fn compute_parameters(command: &String) -> Vec<&str> {
-    let re = Regex::new(r"#\{([^#]+)}").unwrap();
+    let re = Regex::new(r"#\{([^#{]+)}").unwrap();
     let mut command_parameters = vec![];
     for (_, [id]) in re.captures_iter(command).map(|c| c.extract()) {
         command_parameters.push(id);
@@ -43,11 +44,16 @@ pub fn compute_parameters(command: &String) -> Vec<&str> {
     return command_parameters;
 }
 
+fn compute_working_dir() -> PathBuf {
+    let current_exe_patch = env::current_exe().unwrap();
+    return current_exe_patch.parent().unwrap().to_path_buf();
+}
+
 pub fn compute_command(command: &String, inject_data: &InjectResponse) -> String {
     let contract_payload = &inject_data.inject_injector_contract.injector_contract_payload;
     let command_parameters = compute_parameters(&command);
+    let mut executable_command = command.clone();
     if command_parameters.len() > 0 {
-        let mut executable_command = command.clone();
         let config_map = inject_data.inject_content.as_object().unwrap();
         for parameter in command_parameters {
             let key = format!("#{{{}}}", parameter);
@@ -67,9 +73,9 @@ pub fn compute_command(command: &String, inject_data: &InjectResponse) -> String
                 }
             }
         }
-        return executable_command;
     }
-    return command.clone();
+    let working_dir = compute_working_dir();
+    return executable_command.replace("#{location}", working_dir.to_str().unwrap());
 }
 
 pub fn handle_execution_result(semantic: &str, api: &Client, inject_id: String, command: &String) -> i32 {
@@ -107,15 +113,22 @@ pub fn handle_execution_result(semantic: &str, api: &Client, inject_id: String, 
 pub fn handle_command(inject_id: String, api: &Client, inject_data: &InjectResponse) {
     let mut prerequisites_code = 0;
     let contract_payload = &inject_data.inject_injector_contract.injector_contract_payload;
-    // region prerequisite check
-    // TODO
-    // endregion
     // region prerequisite execution
-    let prerequisites = contract_payload.payload_prerequisites.clone();
-    if prerequisites.is_some() {
-        let executable_prerequisites = compute_command(&prerequisites.unwrap(), &inject_data);
-        prerequisites_code += handle_execution_result("prerequisite", &api,
-                                                      inject_id.clone(), &executable_prerequisites);
+    let prerequisites = &contract_payload.payload_prerequisites;
+    for prerequisite in prerequisites.iter() {
+        let mut check_status = 0;
+        let check_cmd = &prerequisite.check_command;
+        if check_cmd.is_some() {
+            let check_prerequisites = compute_command(check_cmd.as_ref().unwrap(), &inject_data);
+            check_status = handle_execution_result("prerequisite check", &api,
+                                                   inject_id.clone(), &check_prerequisites);
+        }
+        // If exit 0, prerequisite are already satisfied
+        if check_status != 0 {
+            let install_prerequisites = compute_command(&prerequisite.get_command, &inject_data);
+            prerequisites_code += handle_execution_result("prerequisite install", &api,
+                                                   inject_id.clone(), &install_prerequisites);
+        }
     }
     // endregion
     // region implant execution
@@ -125,6 +138,12 @@ pub fn handle_command(inject_id: String, api: &Client, inject_data: &InjectRespo
         let executable_command = compute_command(&command, &inject_data);
         let _ = handle_execution_result("implant", &api,
                                         inject_id.clone(), &executable_command);
+    } else {
+        let _ = api.update_status(inject_id.clone(), UpdateInput {
+            execution_message: String::from("Payload execution not executed due to dependencies failure."),
+            execution_status: String::from("ERROR"),
+            execution_duration: 0
+        });
     }
     // endregion
     // region cleanup execution
