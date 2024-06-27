@@ -1,8 +1,7 @@
-use base64::prelude::BASE64_STANDARD;
 use std::process::{Command, Stdio};
+use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use serde::Deserialize;
-
 use crate::common::error_model::Error;
 
 #[derive(Debug, Deserialize)]
@@ -41,30 +40,39 @@ pub fn command_execution(command: &str, pre_check: bool) -> Result<ExecutionResu
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-pub fn command_execution(command: &str) -> Result<ExecutionResult, Error> {
-    let command = command_with_context(asset_agent_id, raw_command);
-    let working_dir = compute_working_dir(asset_agent_id);
-    info!(identifier = asset_agent_id, command = &command.as_str(); "Invoking execution");
-    // Write the script in specific directory
-    create_dir(working_dir.clone())?;
-    let script_file_name = working_dir.join("execution.sh");
-    {
-        let mut file = File::create(script_file_name.clone())?;
-        file.write_all(command.as_bytes())?;
-    }
-    // Prepare and execute the command
-    let command_args = &[script_file_name.to_str().unwrap(), "&"];
-    let child_execution = Command::new("bash")
-        .args(command_args)
-        .stderr(Stdio::null())
-        .stdout(Stdio::null())
-        .spawn()?;
-    // Save execution pid
-    let pid_file_name = working_dir.join("execution.pid");
-    {
-        let mut file = File::create(pid_file_name.clone())?;
-        file.write_all(child_execution.id().to_string().as_bytes())?;
-    }
-    info!(identifier = asset_agent_id; "Revoking execution");
-    return Ok(())
+pub fn command_execution(command: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
+    let echo_child = Command::new("echo")
+        .arg(BASE64_STANDARD.encode(command))
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn().unwrap();
+    let base64_child = Command::new("base64")
+        .arg("-d")
+        .stdin(Stdio::from(echo_child.stdout.unwrap()))
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn().unwrap();
+    let invoke_output = Command::new("sh")
+        .stdin(Stdio::from(base64_child.stdout.unwrap()))
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?.wait_with_output();
+
+    let invoke_result = invoke_output.unwrap().clone();
+    // 0 success | other = maybe prevented
+    let exit_code = invoke_result.status.code().unwrap_or_else(|| -99);
+    let stdout =  String::from_utf8 (invoke_result.stdout).unwrap();
+    let stderr = String::from_utf8 (invoke_result.stderr).unwrap();
+    let exit_status = match exit_code {
+        0 => "SUCCESS",
+        1 => if pre_check { "SUCCESS" } else { "MAYBE_PREVENTED" }
+        -99 => "ERROR",
+        _ => "MAYBE_PREVENTED"
+    };
+    return Ok(ExecutionResult {
+        stdout,
+        stderr,
+        exit_code,
+        status: String::from(exit_status)
+    })
 }
