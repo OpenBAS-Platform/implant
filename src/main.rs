@@ -70,10 +70,9 @@ pub fn compute_command(command: &String, inject_data: &InjectResponse) -> String
                 let InjectorContract { injector_contract_payload, ..} = inject_injector_contract;
                 let InjectorContractPayload { payload_arguments, ..} = injector_contract_payload;
                 let arguments = match payload_arguments {
-                    None => &Vec::new(),
+                    None => &vec![],
                     Some(args) => args
                 };
-                // let arguments = payload_arguments.unwrap_or(&Vec::new());
                 let arg = arguments.iter().find(|arg| arg.key == parameter);
                 if arg.is_some() {
                     let arg_value = arg.unwrap();
@@ -270,7 +269,7 @@ pub fn handle_payload(inject_id: String, api: &Client, inject_data: &InjectRespo
     // region prerequisite execution
     let prerequisites_data = &contract_payload.payload_prerequisites;
     let prerequisites = match prerequisites_data {
-        None => &Vec::new(),
+        None => &vec![],
         Some(args) => args
     };
     for prerequisite in prerequisites.iter() {
