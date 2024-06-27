@@ -69,8 +69,9 @@ pub fn compute_command(command: &String, inject_data: &InjectResponse) -> String
                 let InjectResponse{ inject_injector_contract, ..} = inject_data;
                 let InjectorContract { injector_contract_payload, ..} = inject_injector_contract;
                 let InjectorContractPayload { payload_arguments, ..} = injector_contract_payload;
+                let empty_arguments = vec![];
                 let arguments = match payload_arguments {
-                    None => &vec![],
+                    None => &empty_arguments,
                     Some(args) => args
                 };
                 let arg = arguments.iter().find(|arg| arg.key == parameter);
@@ -268,8 +269,9 @@ pub fn handle_payload(inject_id: String, api: &Client, inject_data: &InjectRespo
     let contract_payload = &inject_data.inject_injector_contract.injector_contract_payload;
     // region prerequisite execution
     let prerequisites_data = &contract_payload.payload_prerequisites;
+    let empty_prerequisites = vec![];
     let prerequisites = match prerequisites_data {
-        None => &vec![],
+        None => &empty_prerequisites,
         Some(args) => args
     };
     for prerequisite in prerequisites.iter() {
