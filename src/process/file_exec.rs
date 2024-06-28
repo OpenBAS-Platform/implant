@@ -48,7 +48,7 @@ pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
 pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
     let script_file_name = compute_working_file(filename);
     // Prepare and execute the command
-    let command_args = &[script_file_name.to_str().unwrap(), "&"];
+    let command_args = &[script_file_name.to_str().unwrap()];
     let invoke_output = Command::new("bash")
         .args(command_args)
         .stderr(Stdio::piped())
