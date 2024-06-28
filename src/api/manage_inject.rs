@@ -1,12 +1,22 @@
 use std::{env, fs};
 use std::fs::File;
 use std::io::{BufWriter, Write};
+
 use mailparse::{parse_content_disposition, parse_header};
 use serde::{Deserialize, Serialize};
 use ureq::serde_json::Value;
+
 use crate::common::error_model::Error;
 
 use super::Client;
+
+pub fn write_response<W>(writer: W, response: ureq::Response) -> std::io::Result<u64>
+where
+    W: Write,
+{
+    let mut writer = BufWriter::new(writer);
+    std::io::copy(&mut response.into_reader(), &mut writer)
+}
 
 #[derive(Debug, Deserialize)]
 pub struct PayloadArg {
@@ -76,21 +86,24 @@ pub struct UpdateInput {
 impl Client {
     pub fn get_inject(&self, inject_id: String) -> Result<InjectResponse, Error> {
         return match self.get(&format!("/api/injects/{}", inject_id)).call() {
-            Ok(response) => {
-                Ok(response.into_json()?)
-            }
+            Ok(response) => Ok(response.into_json()?),
             Err(ureq::Error::Status(_, response)) => {
                 Err(Error::Api(response.into_string().unwrap()))
             }
-            Err(err) => {
-                Err(Error::Internal(err.to_string()))
-            }
+            Err(err) => Err(Error::Internal(err.to_string())),
         };
     }
 
-    pub fn update_status(&self, inject_id: String, input: UpdateInput) -> Result<UpdateInjectResponse, Error> {
+    pub fn update_status(
+        &self,
+        inject_id: String,
+        input: UpdateInput,
+    ) -> Result<UpdateInjectResponse, Error> {
         let post_data = ureq::json!(input);
-        return match self.post(&format!("/api/injects/execution/callback/{}", inject_id)).send_json(post_data) {
+        return match self
+            .post(&format!("/api/injects/execution/callback/{}", inject_id))
+            .send_json(post_data)
+        {
             Ok(response) => Ok(response.into_json()?),
             Err(ureq::Error::Status(_, response)) => {
                 Err(Error::Api(response.into_string().unwrap()))
@@ -100,7 +113,10 @@ impl Client {
     }
 
     pub fn download_file(&self, document_id: &String, in_memory: bool) -> Result<String, Error> {
-        return match self.get(&format!("/api/documents/{}/file", document_id)).call() {
+        return match self
+            .get(&format!("/api/documents/{}/file", document_id))
+            .call()
+        {
             Ok(response) => {
                 let content_disposition = response.header("content-disposition").unwrap_or("");
                 let content_to_parse = format!("Content-Disposition: {}", content_disposition);
@@ -124,19 +140,12 @@ impl Client {
                             return Err(Error::Io(err));
                         }
                     };
-                }
+                };
             }
             Err(ureq::Error::Status(_, response)) => {
                 Err(Error::Api(response.into_string().unwrap()))
             }
-            Err(err) => {
-                Err(Error::Internal(err.to_string()))
-            }
+            Err(err) => Err(Error::Internal(err.to_string())),
         };
     }
-}
-
-pub fn write_response<W>(writer: W, response: ureq::Response) -> std::io::Result<u64> where W: Write {
-    let mut writer = BufWriter::new(writer);
-    std::io::copy(&mut response.into_reader(), &mut writer)
 }

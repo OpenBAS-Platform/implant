@@ -2,6 +2,7 @@ use std::time::Duration;
 use ureq::{Agent, Request};
 
 pub mod manage_inject;
+pub mod manage_reporting;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 

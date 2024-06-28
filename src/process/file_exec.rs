@@ -17,31 +17,42 @@ pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
 
     let script_file_name = compute_working_file(filename);
     let win_path = format!("\"{}\"", script_file_name.to_str().unwrap());
-    let command_args = &["/d", "/c", "powershell.exe", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden",
-        "-NonInteractive", "-NoProfile", "-File"];
+    let command_args = &[
+        "/d",
+        "/c",
+        "powershell.exe",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-WindowStyle",
+        "Hidden",
+        "-NonInteractive",
+        "-NoProfile",
+        "-File",
+    ];
     let invoke_output = Command::new("cmd.exe")
         .args(command_args)
         .raw_arg(win_path.as_str())
         .stderr(Stdio::piped())
         .stdout(Stdio::piped())
-        .spawn()?.wait_with_output();
+        .spawn()?
+        .wait_with_output();
     // 0 success | other = maybe prevented
     let invoke_result = invoke_output.unwrap().clone();
     let exit_code = invoke_result.status.code().unwrap_or_else(|| -99);
-    let stdout =  String::from_utf8 (invoke_result.stdout).unwrap();
-    let stderr = String::from_utf8 (invoke_result.stderr).unwrap();
+    let stdout = String::from_utf8(invoke_result.stdout).unwrap();
+    let stderr = String::from_utf8(invoke_result.stderr).unwrap();
     let exit_status = match exit_code {
         0 => "SUCCESS",
         1 => "MAYBE_PREVENTED",
         -99 => "ERROR",
-        _ => "MAYBE_PREVENTED"
+        _ => "MAYBE_PREVENTED",
     };
     return Ok(ExecutionResult {
         stdout,
         stderr,
         exit_code,
-        status: String::from(exit_status)
-    })
+        status: String::from(exit_status),
+    });
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -53,22 +64,23 @@ pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
         .args(command_args)
         .stderr(Stdio::piped())
         .stdout(Stdio::piped())
-        .spawn()?.wait_with_output();
+        .spawn()?
+        .wait_with_output();
     // 0 success | other = maybe prevented
     let invoke_result = invoke_output.unwrap().clone();
     let exit_code = invoke_result.status.code().unwrap_or_else(|| -99);
-    let stdout =  String::from_utf8 (invoke_result.stdout).unwrap();
-    let stderr = String::from_utf8 (invoke_result.stderr).unwrap();
+    let stdout = String::from_utf8(invoke_result.stdout).unwrap();
+    let stderr = String::from_utf8(invoke_result.stderr).unwrap();
     let exit_status = match exit_code {
         0 => "SUCCESS",
         1 => "MAYBE_PREVENTED",
         -99 => "ERROR",
-        _ => "MAYBE_PREVENTED"
+        _ => "MAYBE_PREVENTED",
     };
     return Ok(ExecutionResult {
         stdout,
         stderr,
         exit_code,
-        status: String::from(exit_status)
-    })
+        status: String::from(exit_status),
+    });
 }
