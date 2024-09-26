@@ -31,6 +31,10 @@ struct Args {
     #[arg(short, long)]
     token: String,
     #[arg(short, long)]
+    unsecured_certificate: String,
+    #[arg(short, long)]
+    with_proxy: String,
+    #[arg(short, long)]
     inject_id: String,
 }
 
@@ -142,7 +146,7 @@ fn main() -> Result<(), Error> {
     // region Process execution
     let args = Args::parse();
     info!("Starting OpenBAS implant {} {}", VERSION, mode());
-    let api = Client::new(args.uri, args.token);
+    let api = Client::new(args.uri, args.token, args.unsecured_certificate == "true", args.with_proxy == "true");
     let inject = api.get_inject(args.inject_id.clone());
     let inject_data = inject.unwrap_or_else(|err| panic!("Fail getting inject {}", err));
     handle_payload(args.inject_id.clone(), &api, &inject_data);
