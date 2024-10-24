@@ -15,26 +15,57 @@ pub struct ExecutionResult {
 }
 
 #[cfg(target_os = "windows")]
-pub fn command_execution(command: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
-    let invoke_expression = format!("Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(command));
-    let invoke_output = Command::new("cmd.exe")
-        .args(&[
-            "/d",
-            "/c",
-            "powershell.exe",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-WindowStyle",
-            "Hidden",
-            "-NonInteractive",
-            "-NoProfile",
-            "-Command",
-            &invoke_expression,
-        ])
-        .stderr(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()?
-        .wait_with_output();
+pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
+    let invoke_output;
+    // TODO encode/decode base64 before ? + gestion des erreurs si pas sh/bash/... (test) + linux code + refacto
+    if executor == "cmd" {
+        invoke_output = Command::new("cmd.exe")
+            .args(&[
+                "/d",
+                "/c",
+                &command
+            ])
+            .stderr(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?
+            .wait_with_output();
+    } else if executor == "bash" {
+        invoke_output = Command::new("bash")
+            .arg("-c")
+            .arg(&command)
+            .stderr(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?
+            .wait_with_output();
+    } else if executor == "sh" {
+        invoke_output = Command::new("sh")
+            .arg("-c")
+            .arg(&command)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?
+            .wait_with_output();
+    } else {
+        let invoke_expression = format!("Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(command));
+        invoke_output = Command::new("cmd.exe")
+            .args(&[
+                "/d",
+                "/c",
+                "powershell.exe",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-WindowStyle",
+                "Hidden",
+                "-NonInteractive",
+                "-NoProfile",
+                "-Command",
+                &invoke_expression,
+            ])
+            .stderr(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?
+            .wait_with_output();
+    }
     let invoke_result = invoke_output.unwrap().clone();
     // 0 success | other = maybe prevented
     let exit_code = invoke_result.status.code().unwrap_or_else(|| -99);
@@ -61,26 +92,57 @@ pub fn command_execution(command: &str, pre_check: bool) -> Result<ExecutionResu
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-pub fn command_execution(command: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
-    let echo_child = Command::new("echo")
-        .arg(BASE64_STANDARD.encode(command))
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .unwrap();
-    let base64_child = Command::new("base64")
-        .arg("-d")
-        .stdin(Stdio::from(echo_child.stdout.unwrap()))
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .unwrap();
-    let invoke_output = Command::new("sh")
-        .stdin(Stdio::from(base64_child.stdout.unwrap()))
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?
-        .wait_with_output();
+pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
+    let invoke_output;
+    if executor == "bash" {
+        invoke_output = Command::new("bash")
+            .arg("-c")
+            .arg(&command)
+            .stderr(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?
+            .wait_with_output();
+    } else if executor == "psh" {
+        let invoke_expression = format!("Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(command));
+        invoke_output = Command::new("cmd.exe")
+            .args(&[
+                "/d",
+                "/c",
+                "powershell.exe",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-WindowStyle",
+                "Hidden",
+                "-NonInteractive",
+                "-NoProfile",
+                "-Command",
+                &invoke_expression,
+            ])
+            .stderr(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?
+            .wait_with_output();
+    } else {
+        let echo_child = Command::new("echo")
+            .arg(BASE64_STANDARD.encode(command))
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let base64_child = Command::new("base64")
+            .arg("-d")
+            .stdin(Stdio::from(echo_child.stdout.unwrap()))
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap();
+        invoke_output = Command::new("sh")
+            .stdin(Stdio::from(base64_child.stdout.unwrap()))
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?
+            .wait_with_output();
+    }
 
     let invoke_result = invoke_output.unwrap().clone();
     // 0 success | other = maybe prevented

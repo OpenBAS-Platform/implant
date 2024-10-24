@@ -64,6 +64,7 @@ pub fn handle_payload(inject_id: String, api: &Client, inject_data: &InjectRespo
                 &api,
                 inject_id.clone(),
                 &check_prerequisites,
+                &prerequisite.executor.clone(),
                 true,
             );
         }
@@ -75,6 +76,7 @@ pub fn handle_payload(inject_id: String, api: &Client, inject_data: &InjectRespo
                 &api,
                 inject_id.clone(),
                 &install_prerequisites,
+                &prerequisite.executor.clone(),
                 false,
             );
         }
@@ -117,13 +119,15 @@ pub fn handle_payload(inject_id: String, api: &Client, inject_data: &InjectRespo
     // region cleanup execution
     // Cleanup command will be executed independently of the previous commands success.
     let cleanup = contract_payload.payload_cleanup_command.clone();
-    if cleanup.is_some() {
+    let executor = contract_payload.payload_cleanup_executor.clone();
+    if cleanup.is_some() && !cleanup.clone().unwrap().is_empty() {
         let executable_cleanup = compute_command(&cleanup.unwrap(), &inject_data);
         let _ = handle_execution_command(
             "prerequisite cleanup",
             &api,
             inject_id.clone(),
             &executable_cleanup,
+            &executor.unwrap(),
             false,
         );
     }
