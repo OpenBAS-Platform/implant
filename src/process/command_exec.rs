@@ -77,7 +77,7 @@ pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<Execution
         -99 => "ERROR",
         _ => "MAYBE_PREVENTED",
     };
-    Ok(ExecutionResult {
+    return Ok(ExecutionResult {
         stdout,
         stderr,
         exit_code,
