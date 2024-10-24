@@ -104,11 +104,10 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
             .wait_with_output();
     } else if executor == "psh" {
         let invoke_expression = format!("Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(command));
-        invoke_output = Command::new("cmd.exe")
+        invoke_output = Command::new("powershell")
             .args(&[
                 "/d",
                 "/c",
-                "powershell.exe",
                 "-ExecutionPolicy",
                 "Bypass",
                 "-WindowStyle",
