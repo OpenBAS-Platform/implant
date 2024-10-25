@@ -1,4 +1,4 @@
-use std::process::{Command, Stdio};
+use std::process::{Command, Output, Stdio};
 
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
