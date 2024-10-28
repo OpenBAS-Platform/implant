@@ -49,7 +49,7 @@ pub fn invoke_shell_command(command: &str, executor: &str) -> std::io::Result<Ou
 pub fn invoke_windows_command(command: &str) -> std::io::Result<Output> {
     // To manage multi lines (we need more than just base64 like the other executor), we replace break line (\n) by &
     // But \n can be found in Windows path (ex: C:\\newFile) so we replace \& by \\n to fix it
-    let new_command = command.replace("\n", " & ").replace("\&","\\n");
+    let new_command = command.replace(r"\n", " & ").replace(r"\&",r"\\n");
     let invoke_expression = format!("([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(new_command));
     let base64_child = Command::new("powershell.exe")
         .arg(&invoke_expression)
@@ -91,7 +91,7 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
     if executor == "cmd" {
         invoke_output = invoke_windows_command(command)
     } else if executor == "bash" || executor == "sh" {
-        invoke_output = invoke_shell_command(executor, command);
+        invoke_output = invoke_shell_command(command, executor);
     } else {
         invoke_output = invoke_powershell_command(command,"cmd.exe", &[
             "/d",
