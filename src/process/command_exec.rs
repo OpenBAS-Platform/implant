@@ -48,8 +48,8 @@ pub fn invoke_shell_command(command: &str, executor: &str) -> std::io::Result<Ou
 
 pub fn invoke_windows_command(command: &str) -> std::io::Result<Output> {
     // To manage multi lines (we need more than just base64 like the other executor), we replace break line (\n) by &
-    // But \n can be found in Windows path (ex: C:\\newFile) so we replace \& by \\n to fix it
-    let new_command = command.replace(r"\n", " & ").replace(r"\&",r"\\n");
+    // \n can be found in Windows path (ex: C:\\newFile) but \n replaces only break line and not \\n in path
+    let new_command = command.replace("\n", " & ");
     let invoke_expression = format!("([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(new_command));
     let base64_child = Command::new("powershell.exe")
         .arg(&invoke_expression)
@@ -89,7 +89,7 @@ pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<Execution
 pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
     let invoke_output;
     if executor == "cmd" {
-        invoke_output = invoke_windows_command(command)
+        invoke_output = invoke_windows_command(command);
     } else if executor == "bash" || executor == "sh" {
         invoke_output = invoke_shell_command(command, executor);
     } else {
@@ -109,7 +109,7 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
 }
 
 pub fn invoke_unix_command(command: &str, executor: &str) -> std::io::Result<Output> {
-    // For unix shell complex command, we need to encode in base64 to manage escape caracters and multi lines commands
+    // For unix shell complex command, we need to encode in base64 to manage escape caracters (pipes,...) and multi lines commands
     let echo_child = Command::new("echo")
         .arg(BASE64_STANDARD.encode(command))
         .stdout(Stdio::piped())
@@ -128,11 +128,11 @@ pub fn invoke_unix_command(command: &str, executor: &str) -> std::io::Result<Out
 pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
     let invoke_output;
     if executor == "bash" {
-        invoke_output = invoke_unix_command(command, "bash")
+        invoke_output = invoke_unix_command(command, "bash");
     } else if executor == "psh" {
         invoke_output = invoke_powershell_command(command, "powershell", &["-c"]);
     } else {
-        invoke_output = invoke_unix_command(command, "sh")
+        invoke_output = invoke_unix_command(command, "sh");
     }
     manage_result(invoke_output?, pre_check)
 }
