@@ -25,7 +25,7 @@ pub fn invoke_command(echo_cmd: Child, executor: &str) -> std::io::Result<Output
 
 pub fn invoke_powershell_command(command: &str, executor: &str, args: &[&str]) -> std::io::Result<Output> {
     // For powershell complex command, we need to encode in base64 to manage escape caracters and multi lines commands
-    let invoke_expression = format!("Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(command));
+    let invoke_expression = format!("$ErrorActionPreference = 'Stop'; Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(command));
     Command::new(executor)
         .args(args)
         .arg(invoke_expression)
@@ -48,8 +48,11 @@ pub fn invoke_shell_command(command: &str, executor: &str) -> std::io::Result<Ou
 
 pub fn invoke_windows_command(command: &str) -> std::io::Result<Output> {
     // To manage multi lines (we need more than just base64 like the other executor), we replace break line (\n) by &
-    // \n can be found in Windows path (ex: C:\\newFile) but \n replaces only break line and not \\n in path
-    let new_command = command.replace("\n", " & ");
+    // \n can be found in Windows path (ex: C:\\newFile) so we replace \& by \\n to fix it
+    let new_command = format!(
+        "setlocal & {} & if errorlevel 1 exit /b 1",
+        command.replace("\n", " & ")
+    );
     let invoke_expression = format!("([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(new_command));
     let base64_child = Command::new("powershell.exe")
         .arg(&invoke_expression)
@@ -65,18 +68,17 @@ pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<Execution
     let exit_code = invoke_result.status.code().unwrap_or_else(|| -99);
     let stdout = String::from_utf8_lossy(&invoke_result.stdout).to_string();
     let stderr = String::from_utf8_lossy(&invoke_result.stderr).to_string();
+
     let exit_status = match exit_code {
-        0 => "SUCCESS",
-        1 => {
-            if pre_check {
-                "SUCCESS"
-            } else {
-                "MAYBE_PREVENTED"
-            }
-        }
+        0 if stderr.is_empty() => "SUCCESS",
+        0 if !stderr.is_empty() => "WARNING",
+        1 if pre_check => "SUCCESS",
         -99 => "ERROR",
+        127 => "COMMAND_NOT_FOUND",
+        126 => "COMMAND_CANNOT_BE_EXECUTED",
         _ => "MAYBE_PREVENTED",
     };
+
     return Ok(ExecutionResult {
         stdout,
         stderr,
