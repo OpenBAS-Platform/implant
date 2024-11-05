@@ -48,7 +48,7 @@ pub fn invoke_shell_command(command: &str, executor: &str) -> std::io::Result<Ou
 
 pub fn invoke_windows_command(command: &str) -> std::io::Result<Output> {
     // To manage multi lines (we need more than just base64 like the other executor), we replace break line (\n) by &
-    // \n can be found in Windows path (ex: C:\\newFile) so we replace \& by \\n to fix it
+    // \n can be found in Windows path (ex: C:\\newFile) but \n replaces only break line and not \\n in path
     let new_command = format!(
         "setlocal & {} & if errorlevel 1 exit /b 1",
         command.replace("\n", " & ")
