@@ -1,4 +1,4 @@
-use std::process::{Command, Output, Stdio};
+use std::process::{Child, Command, Output, Stdio};
 
 use base64::Engine;
 use base64::prelude::BASE64_STANDARD;
@@ -79,12 +79,12 @@ pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<Execution
         _ => "MAYBE_PREVENTED",
     };
 
-    return Ok(ExecutionResult {
+    Ok(ExecutionResult {
         stdout,
         stderr,
         exit_code,
         status: String::from(exit_status),
-    });
+    })
 }
 
 #[cfg(target_os = "windows")]
