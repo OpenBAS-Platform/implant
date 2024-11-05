@@ -74,11 +74,12 @@ pub fn handle_execution_command(
     api: &Client,
     inject_id: String,
     command: &String,
+    executor: &String,
     pre_check: bool,
 ) -> i32 {
     let now = Instant::now();
     info!("{} execution: {:?}", semantic, command);
-    let command_result = command_execution(command.as_str(), pre_check);
+    let command_result = command_execution(command.as_str(), executor.as_str(), pre_check);
     let elapsed = now.elapsed().as_millis();
     return handle_execution_result(semantic, api, inject_id, command_result, elapsed);
 }
@@ -88,12 +89,14 @@ pub fn handle_command(inject_id: String, api: &Client, inject_data: &InjectRespo
         .inject_injector_contract
         .injector_contract_payload;
     let command = contract_payload.command_content.clone().unwrap();
+    let executor = contract_payload.command_executor.clone().unwrap();
     let executable_command = compute_command(&command, &inject_data);
     let _ = handle_execution_command(
         "implant execution",
         &api,
         inject_id.clone(),
         &executable_command,
+        &executor,
         false,
     );
 }
