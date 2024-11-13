@@ -11,7 +11,7 @@ use crate::handle::handle_execution::handle_execution_result;
 use crate::process::command_exec::command_execution;
 
 pub fn compute_parameters(command: &String) -> Vec<&str> {
-    let re = Regex::new(r"#\{([^#{]+)}").unwrap();
+    let re = Regex::new(r"#\{([^#{}]+)}").unwrap();
     let mut command_parameters = vec![];
     for (_, [id]) in re.captures_iter(command).map(|c| c.extract()) {
         command_parameters.push(id);
