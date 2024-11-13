@@ -51,7 +51,7 @@ pub fn invoke_windows_command(command: &str) -> std::io::Result<Output> {
     // \n can be found in Windows path (ex: C:\\newFile) but \n replaces only break line and not \\n in path
     let new_command = format!(
         "setlocal & {} & if errorlevel 1 exit /b 1",
-        command.replace("\n", " & ")
+        command.trim().replace("\n", " & ") // trim "cleans" the start and the end of the command (see the trim doc)
     );
     let invoke_expression = format!("([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(new_command));
     let base64_child = Command::new("powershell.exe")
