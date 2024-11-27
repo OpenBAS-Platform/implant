@@ -4,7 +4,6 @@ use std::io::{BufWriter, Write};
 
 use mailparse::{parse_content_disposition, parse_header};
 use serde::{Deserialize, Serialize};
-use ureq::serde_json::Value;
 
 use crate::common::error_model::Error;
 
@@ -56,21 +55,6 @@ pub struct InjectorContractPayload {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct InjectorContract {
-    pub injector_contract_id: String,
-    pub injector_contract_payload: InjectorContractPayload,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct InjectResponse {
-    pub inject_id: String,
-    pub inject_title: String,
-    pub inject_description: Option<String>,
-    pub inject_content: Value,
-    pub inject_injector_contract: InjectorContract,
-}
-
-#[derive(Debug, Deserialize)]
 pub struct UpdateInjectResponse {
     #[allow(dead_code)]
     pub inject_id: String,
@@ -84,8 +68,9 @@ pub struct UpdateInput {
 }
 
 impl Client {
-    pub fn get_inject(&self, inject_id: String) -> Result<InjectResponse, Error> {
-        return match self.get(&format!("/api/injects/{}", inject_id)).call() {
+
+    pub fn get_executable_payload(&self, inject_id: String) -> Result<InjectorContractPayload, Error> {
+        return match self.get(&format!("/api/injects/{}/executable-payload", inject_id)).call() {
             Ok(response) => Ok(response.into_json()?),
             Err(ureq::Error::Status(_, response)) => {
                 Err(Error::Api(response.into_string().unwrap()))
