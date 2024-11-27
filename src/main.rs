@@ -146,14 +146,7 @@ fn main() -> Result<(), Error> {
     // endregion
     // region Process execution
 
-    // let args = Args::parse();
-    let args = Args {
-        uri: "http://localhost:3001".to_string(),
-        token:"5ccddea0-613c-4a91-a602-6a4eb243d21c".to_string(),
-        unsecured_certificate: "false".to_string(),
-        with_proxy: "false".to_string(),
-        inject_id: "56c8f6df-8dc4-4f25-bd1f-be470cf73904".to_string()
-    };
+    let args = Args::parse();
     info!("Starting OpenBAS implant {} {}", VERSION, mode());
     let api = Client::new(args.uri, args.token, args.unsecured_certificate == "true", args.with_proxy == "true");
     let payload = api.get_executable_payload(args.inject_id.clone());
