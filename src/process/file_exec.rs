@@ -39,7 +39,7 @@ pub fn manage_result(invoke_output: Output) -> Result<ExecutionResult, Error>  {
 pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
 
     let script_file_name = compute_working_file(filename);
-    let win_path = format!("$ErrorActionPreference = 'Stop'; & '{}'", script_file_name.to_str().unwrap());
+    let win_path = format!("$ErrorActionPreference = 'Stop'; & '{}'; exit $LASTEXITCODE", script_file_name.to_str().unwrap());
     let command_args = &[
         "/d",
         "/c",
