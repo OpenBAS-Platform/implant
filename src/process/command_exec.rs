@@ -36,7 +36,7 @@ pub fn invoke_powershell_command(command: &str, executor: &str, args: &[&str]) -
 pub fn invoke_shell_command(command: &str, executor: &str) -> std::io::Result<Output> {
     // For shell complex command, we need to encode in base64 to manage escape caracters and multi lines commands
     let base64_command = format!("echo {} | base64 -d", command);
-    let base64_child = Command::new(executor) // Use 'sh' to interpret the pipe correctly
+    let base64_child = Command::new(executor)
         .arg("-c")
         .arg(&base64_command)
         .stdout(Stdio::piped())
