@@ -23,7 +23,7 @@ pub fn invoke_command(echo_cmd: Child, executor: &str) -> std::io::Result<Output
 
 pub fn invoke_powershell_command(command: &str, executor: &str, args: &[&str]) -> std::io::Result<Output> {
     // For powershell complex command, we need to encode in base64 to manage escape caracters and multi lines commands
-    let invoke_expression = format!("$ErrorActionPreference = 'Stop'; Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", command);
+    let invoke_expression = format!("$ErrorActionPreference = 'Stop'; Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\"))); exit $LASTEXITCODE", command);
     Command::new(executor)
         .args(args)
         .arg(invoke_expression)
@@ -58,7 +58,7 @@ pub fn invoke_windows_command(command: &str) -> std::io::Result<Output> {
     let decoded_command = String::from_utf8_lossy(&base64_child.stdout).trim().to_string();
 
     let cmd_expression = format!(
-        "setlocal & {} & if errorlevel 1 exit /b 1",
+        "setlocal & {} & exit /b errorlevel",
         decoded_command
     );
 
@@ -103,10 +103,7 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
     } else if executor == "bash" || executor == "sh" {
         invoke_output = invoke_shell_command(command, executor);
     } else {
-        invoke_output = invoke_powershell_command(command,"cmd.exe", &[
-            "/d",
-            "/c",
-            "powershell.exe",
+        invoke_output = invoke_powershell_command(command,"powershell.exe", &[
             "-ExecutionPolicy",
             "Bypass",
             "-WindowStyle",
@@ -124,7 +121,12 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
     if executor == "bash" {
         invoke_output = invoke_shell_command(command, "bash");
     } else if executor == "psh" {
-        invoke_output = invoke_powershell_command(command, "powershell", &["-c"]);
+        invoke_output = invoke_powershell_command(command, "powershell", &[
+            "-ExecutionPolicy",
+            "Bypass",
+            "-NonInteractive",
+            "-NoProfile",
+            "-Command"]);
     } else {
         invoke_output = invoke_shell_command(command, "sh");
     }
