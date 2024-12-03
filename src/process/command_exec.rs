@@ -25,7 +25,7 @@ pub fn invoke_command(echo_cmd: Child, executor: &str) -> std::io::Result<Output
 
 pub fn invoke_powershell_command(command: &str, executor: &str, args: &[&str]) -> std::io::Result<Output> {
     // For powershell complex command, we need to encode in base64 to manage escape caracters and multi lines commands
-    let invoke_expression = format!("$ErrorActionPreference = 'Stop'; Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(command));
+    let invoke_expression = format!("$ErrorActionPreference = 'Stop'; Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\"))); exit $LASTEXITCODE", BASE64_STANDARD.encode(command));
     Command::new(executor)
         .args(args)
         .arg(invoke_expression)
@@ -50,7 +50,7 @@ pub fn invoke_windows_command(command: &str) -> std::io::Result<Output> {
     // To manage multi lines (we need more than just base64 like the other executor), we replace break line (\n) by &
     // \n can be found in Windows path (ex: C:\\newFile) but \n replaces only break line and not \\n in path
     let new_command = format!(
-        "setlocal & {} & if errorlevel 1 exit /b 1",
+        "setlocal & {} & exit /b errorlevel",
         command.trim().replace("\n", " & ") // trim "cleans" the start and the end of the command (see the trim doc)
     );
     let invoke_expression = format!("([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(new_command));
@@ -95,10 +95,7 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
     } else if executor == "bash" || executor == "sh" {
         invoke_output = invoke_shell_command(command, executor);
     } else {
-        invoke_output = invoke_powershell_command(command,"cmd.exe", &[
-            "/d",
-            "/c",
-            "powershell.exe",
+        invoke_output = invoke_powershell_command(command,"powershell.exe", &[
             "-ExecutionPolicy",
             "Bypass",
             "-WindowStyle",
@@ -132,7 +129,12 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
     if executor == "bash" {
         invoke_output = invoke_unix_command(command, "bash");
     } else if executor == "psh" {
-        invoke_output = invoke_powershell_command(command, "powershell", &["-c"]);
+        invoke_output = invoke_powershell_command(command, "powershell", &[
+            "-ExecutionPolicy",
+            "Bypass",
+            "-NonInteractive",
+            "-NoProfile",
+            "-Command"]);
     } else {
         invoke_output = invoke_unix_command(command, "sh");
     }
