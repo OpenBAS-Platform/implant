@@ -5,6 +5,7 @@ use base64::prelude::BASE64_STANDARD;
 use serde::Deserialize;
 
 use crate::common::error_model::Error;
+use crate::process::exec_utils::is_executor_present;
 
 #[derive(Debug, Deserialize)]
 pub struct ExecutionResult {
@@ -89,6 +90,10 @@ pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<Execution
 
 #[cfg(target_os = "windows")]
 pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
+    if !is_executor_present(executor){
+        return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
+    }
+
     let invoke_output;
     if executor == "cmd" {
         invoke_output = invoke_windows_command(command);
@@ -125,6 +130,10 @@ pub fn invoke_unix_command(command: &str, executor: &str) -> std::io::Result<Out
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
+    if !is_executor_present(executor){
+        return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
+    }
+
     let invoke_output;
     if executor == "bash" {
         invoke_output = invoke_unix_command(command, "bash");
