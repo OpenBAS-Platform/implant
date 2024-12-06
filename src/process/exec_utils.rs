@@ -11,7 +11,7 @@ pub fn is_executor_present(executor: &str) -> bool {
     ]);
     let actual_executor = alias_map.get(executor).unwrap_or(&executor);
 
-    Command::new(executor)
+    Command::new(actual_executor)
         .spawn()
         .map(|mut child| child.kill().is_ok()) // Kill immediately to avoid hanging.
         .unwrap_or(false)
