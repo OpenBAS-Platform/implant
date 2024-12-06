@@ -5,6 +5,7 @@ use base64::prelude::BASE64_STANDARD;
 use serde::Deserialize;
 
 use crate::common::error_model::Error;
+use crate::process::exec_utils::is_executor_present;
 
 #[derive(Debug, Deserialize)]
 pub struct ExecutionResult {
@@ -91,10 +92,19 @@ pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<Execution
 pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
     let invoke_output;
     if executor == "cmd" {
+        if !is_executor_present(executor){
+            return Err(Error::Internal(format!("Executor {} is not available.", executor)));
+        }
         invoke_output = invoke_windows_command(command);
     } else if executor == "bash" || executor == "sh" {
+        if !is_executor_present(executor){
+            return Err(Error::Internal(format!("Executor {} is not available.", executor)));
+        }
         invoke_output = invoke_shell_command(command, executor);
     } else {
+        if !is_executor_present("powershell.exe"){
+            return Err(Error::Internal(format!("Executor powershell.exe is not available.")));
+        }
         invoke_output = invoke_powershell_command(command,"powershell.exe", &[
             "-ExecutionPolicy",
             "Bypass",
@@ -125,10 +135,17 @@ pub fn invoke_unix_command(command: &str, executor: &str) -> std::io::Result<Out
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
+
     let invoke_output;
     if executor == "bash" {
-        invoke_output = invoke_unix_command(command, "bash");
+        if !is_executor_present(executor){
+            return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
+        }
+        invoke_output = invoke_unix_command(command, executor);
     } else if executor == "psh" {
+        if !is_executor_present(executor){
+            return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
+        }
         invoke_output = invoke_powershell_command(command, "powershell", &[
             "-ExecutionPolicy",
             "Bypass",
@@ -136,6 +153,9 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
             "-NoProfile",
             "-Command"]);
     } else {
+        if !is_executor_present("sh"){
+            return Err(Error::Internal(format!("Executor sh is not available.")));
+        }
         invoke_output = invoke_unix_command(command, "sh");
     }
     manage_result(invoke_output?, pre_check)
