@@ -135,6 +135,7 @@ pub fn invoke_unix_command(command: &str, executor: &str) -> std::io::Result<Out
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
+
     let invoke_output;
     if executor == "bash" {
         if !is_executor_present(executor){
