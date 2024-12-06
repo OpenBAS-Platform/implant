@@ -141,7 +141,7 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
         if !is_executor_present(executor){
             return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
         }
-        invoke_output = invoke_unix_command(command, "bash");
+        invoke_output = invoke_unix_command(command, executor);
     } else if executor == "psh" {
         if !is_executor_present(executor){
             return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
