@@ -40,7 +40,7 @@ pub fn format_powershell_command(command:String) -> String {
 
 pub fn format_windows_command(command:String) -> String {
     format!(
-        "setlocal & {} & exit /b %errorlevel%",
+        "setlocal & {} & exit /b errorlevel",
         command
     )
 }
@@ -86,6 +86,28 @@ pub fn get_executor( executor: &str) -> &str {
     }
 }
 
+#[cfg(target_os = "windows")]
+pub fn get_psh_arg() -> Vec<&'static str> {
+    Vec::from([
+        "-ExecutionPolicy",
+        "Bypass",
+        "-WindowStyle",
+        "Hidden",
+        "-NonInteractive",
+        "-NoProfile",
+        "-Command"])
+}
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+pub fn get_psh_arg() -> Vec<&'static str> {
+    Vec::from([
+        "-ExecutionPolicy",
+        "Bypass",
+        "-NonInteractive",
+        "-NoProfile",
+        "-Command"])
+}
+
 pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
     let final_executor = get_executor(executor);
     let mut formatted_cmd= decode_command(command);
@@ -97,6 +119,7 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
 
     }  else if final_executor == "powershell" {
         formatted_cmd = format_powershell_command(formatted_cmd);
+        args = get_psh_arg();
     }
 
     let invoke_output = invoke_command(final_executor, &formatted_cmd, args.as_slice());
