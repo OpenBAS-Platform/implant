@@ -4,6 +4,7 @@ use std::process::{Command, Output, Stdio};
 
 use crate::common::error_model::Error;
 use crate::process::command_exec::ExecutionResult;
+use crate::process::exec_utils::is_executor_present;
 
 fn compute_working_file(filename: &str) -> PathBuf {
     let current_exe_patch = env::current_exe().unwrap();
@@ -37,7 +38,10 @@ pub fn manage_result(invoke_output: Output) -> Result<ExecutionResult, Error>  {
 
 #[cfg(target_os = "windows")]
 pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
-
+    let executor = "powershell.exe";
+    if !is_executor_present(executor){
+        return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
+    }
     let script_file_name = compute_working_file(filename);
     let win_path = format!("$ErrorActionPreference = 'Stop'; & '{}'; exit $LASTEXITCODE", script_file_name.to_str().unwrap());
     let command_args = &[
@@ -49,7 +53,7 @@ pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
         "-NoProfile",
         "-Command",
     ];
-    let invoke_output = Command::new("powershell.exe")
+    let invoke_output = Command::new(executor)
         .args(command_args)
         .arg(win_path)
         .stderr(Stdio::piped())
@@ -61,10 +65,14 @@ pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
+    let executor = "bash";
+    if !is_executor_present(executor){
+        return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
+    }
     let script_file_name = compute_working_file(filename);
     // Prepare and execute the command
     let command_args = &[script_file_name.to_str().unwrap()];
-    let invoke_output = Command::new("bash")
+    let invoke_output = Command::new(executor)
         .args(command_args)
         .stderr(Stdio::piped())
         .stdout(Stdio::piped())
