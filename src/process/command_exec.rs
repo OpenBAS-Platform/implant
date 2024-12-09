@@ -1,7 +1,5 @@
 use std::process::{Child, Command, Output, Stdio};
 
-use base64::Engine;
-use base64::prelude::BASE64_STANDARD;
 use serde::Deserialize;
 
 use crate::common::error_model::Error;
@@ -26,7 +24,7 @@ pub fn invoke_command(echo_cmd: Child, executor: &str) -> std::io::Result<Output
 
 pub fn invoke_powershell_command(command: &str, executor: &str, args: &[&str]) -> std::io::Result<Output> {
     // For powershell complex command, we need to encode in base64 to manage escape caracters and multi lines commands
-    let invoke_expression = format!("$ErrorActionPreference = 'Stop'; Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\"))); exit $LASTEXITCODE", BASE64_STANDARD.encode(command));
+    let invoke_expression = format!("$ErrorActionPreference = 'Stop'; Invoke-Expression ([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\"))); exit $LASTEXITCODE", command);
     Command::new(executor)
         .args(args)
         .arg(invoke_expression)
@@ -38,34 +36,44 @@ pub fn invoke_powershell_command(command: &str, executor: &str, args: &[&str]) -
 
 pub fn invoke_shell_command(command: &str, executor: &str) -> std::io::Result<Output> {
     // For shell complex command, we need to encode in base64 to manage escape caracters and multi lines commands
+    let base64_command = format!("echo {} | base64 -d", command);
     let base64_child = Command::new(executor)
         .arg("-c")
-        .arg("echo ".to_owned() + &BASE64_STANDARD.encode(command) + " | base64 --d")
+        .arg(&base64_command)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()?;
+
     invoke_command(base64_child, executor)
 }
 
 pub fn invoke_windows_command(command: &str) -> std::io::Result<Output> {
-    // To manage multi lines (we need more than just base64 like the other executor), we replace break line (\n) by &
-    // \n can be found in Windows path (ex: C:\\newFile) but \n replaces only break line and not \\n in path
-    let new_command = format!(
-        "setlocal & {} & exit /b errorlevel",
-        command.trim().replace("\n", " & ") // trim "cleans" the start and the end of the command (see the trim doc)
-    );
-    let invoke_expression = format!("([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", BASE64_STANDARD.encode(new_command));
+    let invoke_expression = format!("([System.Text.Encoding]::UTF8.GetString([convert]::FromBase64String(\"{}\")))", command);
     let base64_child = Command::new("powershell.exe")
+        .arg("-Command")
         .arg(&invoke_expression)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn()?;
-    invoke_command(base64_child, "cmd")
+        .output()?;
+
+    let decoded_command = String::from_utf8_lossy(&base64_child.stdout).trim().to_string();
+
+    let cmd_expression = format!(
+        "setlocal & {} & exit /b errorlevel",
+        decoded_command
+    );
+
+    Command::new("cmd.exe")
+        .arg("/C")
+        .arg(cmd_expression)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?
+        .wait_with_output()
 }
 
 pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<ExecutionResult, Error>  {
     let invoke_result = invoke_output.clone();
-    // 0 success | other = maybe prevented
     let exit_code = invoke_result.status.code().unwrap_or_else(|| -99);
     let stdout = String::from_utf8_lossy(&invoke_result.stdout).to_string();
     let stderr = String::from_utf8_lossy(&invoke_result.stderr).to_string();
@@ -117,22 +125,6 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
     manage_result(invoke_output?, pre_check)
 }
 
-pub fn invoke_unix_command(command: &str, executor: &str) -> std::io::Result<Output> {
-    // For unix shell complex command, we need to encode in base64 to manage escape caracters (pipes,...) and multi lines commands
-    let echo_child = Command::new("echo")
-        .arg(BASE64_STANDARD.encode(command))
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-    let base64_child = Command::new("base64")
-        .arg("-d")
-        .stdin(Stdio::from(echo_child.stdout.unwrap()))
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-    invoke_command(base64_child, executor)
-}
-
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Result<ExecutionResult, Error> {
 
@@ -141,7 +133,7 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
         if !is_executor_present(executor){
             return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
         }
-        invoke_output = invoke_unix_command(command, executor);
+        invoke_output = invoke_shell_command(command, executor);
     } else if executor == "psh" {
         if !is_executor_present(executor){
             return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
@@ -156,7 +148,7 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
         if !is_executor_present("sh"){
             return Err(Error::Internal(format!("Executor sh is not available.")));
         }
-        invoke_output = invoke_unix_command(command, "sh");
+        invoke_output = invoke_shell_command(command, "sh");
     }
     manage_result(invoke_output?, pre_check)
 }

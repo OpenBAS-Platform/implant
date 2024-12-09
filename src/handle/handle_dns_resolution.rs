@@ -3,13 +3,11 @@ use std::net::{SocketAddr, ToSocketAddrs};
 use log::info;
 
 use crate::api::Client;
-use crate::api::manage_inject::{InjectResponse, UpdateInput};
+use crate::api::manage_inject::{InjectorContractPayload, UpdateInput};
 use crate::handle::ExecutionOutput;
 
-pub fn handle_dns_resolution(inject_id: String, api: &Client, inject_data: &InjectResponse) {
-    let hostname_raw = &inject_data
-        .inject_injector_contract
-        .injector_contract_payload
+pub fn handle_dns_resolution(inject_id: String, api: &Client, contract_payload: &InjectorContractPayload) {
+    let hostname_raw = &contract_payload
         .dns_resolution_hostname;
     let data = hostname_raw.clone().unwrap();
     let hostnames = data.split("\n");
