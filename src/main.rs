@@ -52,9 +52,9 @@ pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &Inject
         Some(args) => args,
     };
     for prerequisite in prerequisites.iter() {
-        let mut check_status = 0;
+        let mut check_status = 1;
         let check_cmd = &prerequisite.check_command;
-        if check_cmd.is_some() {
+        if check_cmd.is_some() && !check_cmd.clone().unwrap().is_empty(){
             let check_prerequisites = compute_command(check_cmd.as_ref().unwrap());
             check_status = handle_execution_command(
                 "prerequisite check",
