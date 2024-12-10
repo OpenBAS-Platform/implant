@@ -4,6 +4,7 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::Deserialize;
 
 use crate::common::error_model::Error;
+use crate::process::exec_utils::is_executor_present;
 
 #[derive(Debug, Deserialize)]
 pub struct ExecutionResult {
@@ -112,6 +113,10 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
     let final_executor = get_executor(executor);
     let mut formatted_cmd= decode_command(command);
     let mut args: Vec<&str> = vec!["-c"];
+
+    if !is_executor_present(final_executor){
+        return Err(Error::Internal(format!("Executor {} is not available.", final_executor)));
+    }
 
     if final_executor == "cmd" {
         formatted_cmd = format_windows_command(formatted_cmd);
