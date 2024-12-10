@@ -38,8 +38,8 @@ jobs:
       - run: rustup toolchain install stable-x86_64-pc-windows-msvc
       - run: rustup default stable-x86_64-pc-windows-msvc
       - run: cargo build --release
-      - run: VERSION = if ($env:CIRCLE_TAG) { $env:CIRCLE_TAG } else { if ($env:CIRCLE_BRANCH == "main") { "latest" } else { "prerelease" } }
-      - run: curl.exe -u samuel.hassine@filigran.io:$env:JFROG_TOKEN -T ./target/release/openbas-implant.exe "https://filigran.jfrog.io/artifactory/openbas-implant/windows/x86_64/openbas-implant-$VERSION.exe"
+      - run: $env:version = if ($env:CIRCLE_TAG) { $env:CIRCLE_TAG } else { if ($env:CIRCLE_BRANCH -eq "main") { "latest" } else { "prerelease" } }
+      - run: curl.exe -u samuel.hassine@filigran.io:$env:JFROG_TOKEN -T ./target/release/openbas-implant.exe "https://filigran.jfrog.io/artifactory/openbas-implant/windows/x86_64/openbas-implant-$env:version.exe"
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
           paths:
@@ -78,8 +78,8 @@ jobs:
       - run: . "$HOME/.cargo/env"; rustup target add x86_64-unknown-linux-musl
       - run: . "$HOME/.cargo/env"; cargo build --target=x86_64-unknown-linux-musl --release
       - run: strip ./target/x86_64-unknown-linux-musl/release/openbas-implant
-      - run: VERSION = if ($env:CIRCLE_TAG) { $env:CIRCLE_TAG } else { if ($env:CIRCLE_BRANCH == "main") { "latest" } else { "prerelease" } }
-      - run: curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/x86_64-unknown-linux-musl/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/linux/x86_64/openbas-implant-$VERSION"
+      - run: export version=${CIRCLE_TAG:-$( [ "$CIRCLE_BRANCH" = "main" ] && echo "latest" || echo "prerelease" )}
+      - run: curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/x86_64-unknown-linux-musl/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/linux/x86_64/openbas-implant-$version"
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
           paths:
@@ -120,8 +120,8 @@ jobs:
       - run: . "$HOME/.cargo/env"; rustup target add aarch64-unknown-linux-musl
       - run: . "$HOME/.cargo/env"; cargo build --target=aarch64-unknown-linux-musl --release
       - run: strip ./target/aarch64-unknown-linux-musl/release/openbas-implant
-      - run: VERSION = if ($env:CIRCLE_TAG) { $env:CIRCLE_TAG } else { if ($env:CIRCLE_BRANCH == "main") { "latest" } else { "prerelease" } }
-      - run: curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/aarch64-unknown-linux-musl/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/linux/arm64/openbas-implant-$VERSION"
+      - run: export version=${CIRCLE_TAG:-$( [ "$CIRCLE_BRANCH" = "main" ] && echo "latest" || echo "prerelease" )}
+      - run: curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/aarch64-unknown-linux-musl/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/linux/arm64/openbas-implant-$version"
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
           paths:
@@ -156,8 +156,8 @@ jobs:
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - run: . "$HOME/.cargo/env"; cargo build --release
       - run: strip ./target/release/openbas-implant
-      - run: VERSION = if ($env:CIRCLE_TAG) { $env:CIRCLE_TAG } else { if ($env:CIRCLE_BRANCH == "main") { "latest" } else { "prerelease" } }
-      - run: curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/macos/arm64/openbas-implant-$VERSION"
+      - run: export version=${CIRCLE_TAG:-$( [ "$CIRCLE_BRANCH" = "main" ] && echo "latest" || echo "prerelease" )}
+      - run: curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/macos/arm64/openbas-implant-$version"
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
           paths:
@@ -190,8 +190,8 @@ jobs:
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - run: . "$HOME/.cargo/env"; cargo build --release
       - run: strip ./target/release/openbas-implant
-      - run: VERSION = if ($env:CIRCLE_TAG) { $env:CIRCLE_TAG } else { if ($env:CIRCLE_BRANCH == "main") { "latest" } else { "prerelease" } }
-      - run: curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/macos/x86_64/openbas-implant-$VERSION"
+      - run: export version=${CIRCLE_TAG:-$( [ "$CIRCLE_BRANCH" = "main" ] && echo "latest" || echo "prerelease" )}
+      - run: curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/macos/x86_64/openbas-implant-$version"
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
           paths:
@@ -207,13 +207,15 @@ workflows:
             branches:
               ignore:
                 - main
-                - release/*
+                - /^release\/\d+\.\d+\.\d+$/
       - windows_x86_64_build:
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)+(\.[0-9]+)*/
             branches:
-              only: main
+              only:
+                - main
+                - /^release\/\d+\.\d+\.\d+$/
       - linux_x86_64_compile:
           filters:
             tags:
@@ -221,13 +223,15 @@ workflows:
             branches:
               ignore:
                 - main
-                - release/*
+                - /^release\/\d+\.\d+\.\d+$/
       - linux_x86_64_build:
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)+(\.[0-9]+)*/
             branches:
-              only: main
+              only:
+                - main
+                - /^release\/\d+\.\d+\.\d+$/
       - linux_arm_64_compile:
           filters:
             tags:
@@ -235,13 +239,15 @@ workflows:
             branches:
               ignore:
                 - main
-                - release/*
+                - /^release\/\d+\.\d+\.\d+$/
       - linux_arm_64_build:
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)+(\.[0-9]+)*/
             branches:
-              only: main
+              only:
+                - main
+                - /^release\/\d+\.\d+\.\d+$/
       - macos_arm_64_compile:
           filters:
             tags:
@@ -249,13 +255,15 @@ workflows:
             branches:
               ignore:
                 - main
-                - release/*
+                - /^release\/\d+\.\d+\.\d+$/
       - macos_arm_64_build:
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)+(\.[0-9]+)*/
             branches:
-              only: main
+              only:
+                - main
+                - /^release\/\d+\.\d+\.\d+$/
       - macos_x86_64_compile:
           filters:
             tags:
@@ -263,10 +271,12 @@ workflows:
             branches:
               ignore:
                 - main
-                - release/*
+                - /^release\/\d+\.\d+\.\d+$/
       - macos_x86_64_build:
           filters:
             tags:
               only: /[0-9]+(\.[0-9]+)+(\.[0-9]+)*/
             branches:
-              only: main
+              only:
+                - main
+                - /^release\/\d+\.\d+\.\d+$/
