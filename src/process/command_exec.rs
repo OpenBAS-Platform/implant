@@ -114,8 +114,8 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
     let mut formatted_cmd= decode_command(command);
     let mut args: Vec<&str> = vec!["-c"];
 
-    if !is_executor_present(executor){
-        return Err(Error::Internal(format!("Executor {} is not available.", executor)));
+    if !is_executor_present(final_executor){
+        return Err(Error::Internal(format!("Executor {} is not available.", final_executor)));
     }
 
     if final_executor == "cmd" {
