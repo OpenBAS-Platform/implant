@@ -34,7 +34,7 @@ pub fn decode_command(encoded_command: &str) -> String {
 
 pub fn format_powershell_command(command:String) -> String {
     format!(
-        "$ErrorActionPreference = 'Stop'; {} ; exit $LASTEXITCODE",
+        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;$ErrorActionPreference = 'Stop'; {} ; exit $LASTEXITCODE",
         command
     )
 }
@@ -49,8 +49,9 @@ pub fn format_windows_command(command:String) -> String {
 pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<ExecutionResult, Error>  {
     let invoke_result = invoke_output.clone();
     let exit_code = invoke_result.status.code().unwrap_or_else(|| -99);
-    let stdout = String::from_utf8_lossy(&invoke_result.stdout).to_string();
-    let stderr = String::from_utf8_lossy(&invoke_result.stderr).to_string();
+
+    let stdout = decode_output(&invoke_result.stdout);
+    let stderr = decode_output(&invoke_result.stderr);
 
     let exit_status = match exit_code {
         0 if stderr.is_empty() => "SUCCESS",
@@ -68,6 +69,15 @@ pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<Execution
         exit_code,
         status: String::from(exit_status),
     })
+}
+
+pub fn decode_output(raw_bytes: &[u8]) -> String {
+    // Try decoding as UTF-8
+    if let Ok(decoded) = String::from_utf8(raw_bytes.to_vec()) {
+        return decoded; // Return if successful
+    }
+    // Fallback to UTF-8 lossy decoding
+    String::from_utf8_lossy(raw_bytes).to_string()
 }
 
 #[cfg(target_os = "windows")]
@@ -121,7 +131,6 @@ pub fn command_execution(command: &str, executor: &str, pre_check: bool) -> Resu
     if final_executor == "cmd" {
         formatted_cmd = format_windows_command(formatted_cmd);
         args = vec!["/V", "/C"];
-
     }  else if final_executor == "powershell" {
         formatted_cmd = format_powershell_command(formatted_cmd);
         args = get_psh_arg();
