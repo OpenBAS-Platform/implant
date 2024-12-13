@@ -18,6 +18,9 @@ mod common;
 mod handle;
 mod process;
 
+#[cfg(test)]
+mod tests;
+
 pub static THREADS_CONTROL: AtomicBool = AtomicBool::new(true);
 const ENV_PRODUCTION: &str = "production";
 const VERSION: &str = env!("CARGO_PKG_VERSION");
