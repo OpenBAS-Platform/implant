@@ -13,7 +13,7 @@ pub fn handle_execution_result(
     command_result: Result<ExecutionResult, Error>,
     elapsed: u128,
 ) -> i32 {
-    return match command_result {
+    match command_result {
         Ok(res) => {
             info!("{} execution stdout: {:?}", semantic, res.stdout);
             info!("{} execution stderr: {:?}", semantic, res.stderr);
@@ -60,5 +60,5 @@ pub fn handle_execution_result(
             // Return error code
             -1
         }
-    };
+    }
 }

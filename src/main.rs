@@ -42,7 +42,7 @@ struct Args {
 }
 
 pub fn mode() -> String {
-    return env::var("env").unwrap_or_else(|_| ENV_PRODUCTION.into());
+    env::var("env").unwrap_or_else(|_| ENV_PRODUCTION.into())
 }
 
 pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &InjectorContractPayload) {
@@ -61,7 +61,7 @@ pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &Inject
             let check_prerequisites = compute_command(check_cmd.as_ref().unwrap());
             check_status = handle_execution_command(
                 "prerequisite check",
-                &api,
+                api,
                 inject_id.clone(),
                 &check_prerequisites,
                 &prerequisite.executor,
@@ -73,7 +73,7 @@ pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &Inject
             let install_prerequisites = compute_command(&prerequisite.get_command);
             prerequisites_code += handle_execution_command(
                 "prerequisite execution",
-                &api,
+                api,
                 inject_id.clone(),
                 &install_prerequisites,
                 &prerequisite.executor,
@@ -87,10 +87,10 @@ pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &Inject
     if prerequisites_code == 0 {
         let payload_type = &contract_payload.payload_type;
         match payload_type.as_str() {
-            "Command" => handle_command(inject_id.clone(), &api, &contract_payload),
-            "DnsResolution" => handle_dns_resolution(inject_id.clone(), &api, &contract_payload),
-            "Executable" => handle_file_execute(inject_id.clone(), &api, &contract_payload),
-            "FileDrop" => handle_file_drop(inject_id.clone(), &api, &contract_payload),
+            "Command" => handle_command(inject_id.clone(), api, contract_payload),
+            "DnsResolution" => handle_dns_resolution(inject_id.clone(), api, contract_payload),
+            "Executable" => handle_file_execute(inject_id.clone(), api, contract_payload),
+            "FileDrop" => handle_file_drop(inject_id.clone(), api, contract_payload),
             // "NetworkTraffic" => {}, // Not implemented yet
             _ => {
                 let _ = api.update_status(
@@ -124,7 +124,7 @@ pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &Inject
         let executor = contract_payload.payload_cleanup_executor.clone().unwrap();
         let _ = handle_execution_command(
             "cleanup execution",
-            &api,
+            api,
             inject_id.clone(),
             &executable_cleanup,
             &executor,
@@ -156,5 +156,5 @@ fn main() -> Result<(), Error> {
     let contract_payload = payload.unwrap_or_else(|err| panic!("Fail getting payload {}", err));
     handle_payload(args.inject_id.clone(), &api, &contract_payload);
     // endregion
-    return Ok(());
+    Ok(())
 }

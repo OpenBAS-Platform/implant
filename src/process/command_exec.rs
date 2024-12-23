@@ -48,7 +48,7 @@ pub fn format_windows_command(command:String) -> String {
 
 pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<ExecutionResult, Error>  {
     let invoke_result = invoke_output.clone();
-    let exit_code = invoke_result.status.code().unwrap_or_else(|| -99);
+    let exit_code = invoke_result.status.code().unwrap_or(-99);
 
     let stdout = decode_output(&invoke_result.stdout);
     let stderr = decode_output(&invoke_result.stderr);
