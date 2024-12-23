@@ -124,13 +124,13 @@ impl Client {
                 } else {
                     let output_file = File::create(file_directory.clone()).unwrap();
                     let file_write = write_response(output_file, response);
-                    return match file_write {
+                    match file_write {
                         Ok(_) => Ok(String::from(name)),
                         Err(err) => {
                             let _ = fs::remove_file(file_directory.clone());
-                            return Err(Error::Io(err));
+                            Err(Error::Io(err))
                         }
-                    };
+                    }
                 }
             }
             Err(ureq::Error::Status(_, response)) => {
