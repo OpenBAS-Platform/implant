@@ -1,5 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
+use rustls::ClientConfig;
+use rustls_platform_verifier::BuilderVerifierExt;
 use ureq::{Agent, Request};
 
 pub mod manage_inject;
@@ -28,8 +30,11 @@ impl Client {
             .try_proxy_from_env(with_proxy);
         if unsecured_certificate {
             let arc_crypto_provider = Arc::new(rustls::crypto::ring::default_provider());
-            let config = rustls_platform_verifier::tls_config_with_provider(arc_crypto_provider)
-                .expect("Failed to create TLS config with crypto provider");
+            let config = ClientConfig::builder_with_provider(arc_crypto_provider)
+                .with_safe_default_protocol_versions()
+                .unwrap()
+                .with_platform_verifier()
+                .with_no_client_auth();
             http_client = http_client.tls_config(Arc::new(config));
         }
         // Remove trailing slash
