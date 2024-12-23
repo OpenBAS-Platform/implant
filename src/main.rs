@@ -1,3 +1,5 @@
+#![feature(str_as_str)]
+
 use std::env;
 use std::sync::atomic::AtomicBool;
 
