@@ -15,7 +15,7 @@ fn compute_working_dir() -> PathBuf {
 }
 
 pub fn compute_command(command: &str) -> String {
-    let executable_command = command.clone();
+    let executable_command = command;
     let working_dir = compute_working_dir();
     executable_command.replace("#{location}", working_dir.to_str().unwrap())
 }
