@@ -32,7 +32,12 @@ fn test_invoke_command_powershell_special_character() {
     let command = "echo Helloé";
     let formatted_cmd = format_powershell_command(command.to_string());
     let args: Vec<&str> = vec!["-c"];
-    let invoke_output = invoke_command("powershell", &formatted_cmd, args.as_slice());
-    let stdout = decode_output(&invoke_output.unwrap().stdout);
+
+    let invoke_output = match invoke_command("powershell", &formatted_cmd, args.as_slice()) {
+        Ok(output) => output,
+        Err(e) => panic!("Failed to invoke PowerShell command: {}", e),
+    };
+
+    let stdout = decode_output(&invoke_output.stdout);
     assert_eq!(stdout, "Helloé\r\n");
 }
