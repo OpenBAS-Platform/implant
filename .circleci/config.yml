@@ -18,6 +18,7 @@ jobs:
       - run: ./rustup-init.exe -vy
       - run: rustup toolchain install stable-x86_64-pc-windows-msvc
       - run: rustup default stable-x86_64-pc-windows-msvc
+      - run: cargo clean
       # Install quality tools
       - run: |
           rustup component add clippy
@@ -72,6 +73,7 @@ jobs:
       - run: ./rustup-init.exe -vy
       - run: Invoke-Expression '& "$env:USERPROFILE\.cargo\bin\rustup" toolchain install stable-aarch64-pc-windows-msvc'
       - run: Invoke-Expression '& "$env:USERPROFILE\.cargo\bin\rustup" default stable-aarch64-pc-windows-msvc'
+      - run: cargo clean
       # Install quality tools
       - run: |
           rustup component add clippy
@@ -126,6 +128,7 @@ jobs:
       - run: sudo apt-get -y install curl musl-tools
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - run: . "$HOME/.cargo/env"; rustup target add x86_64-unknown-linux-musl
+      - run: cargo clean
       # Install quality tools
       - run: |
           rustup component add clippy
@@ -180,6 +183,7 @@ jobs:
       - run: sudo apt-get -y install curl musl-tools
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - run: . "$HOME/.cargo/env"; rustup target add aarch64-unknown-linux-musl
+      - run: cargo clean
       # Install quality tools
       - run: |
           rustup component add clippy
@@ -232,6 +236,7 @@ jobs:
             - cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
             - cargo-{{ arch }}
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+      - run: cargo clean
       # Install quality tools
       - run: |
           rustup component add clippy
@@ -280,6 +285,7 @@ jobs:
             - cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
             - cargo-{{ arch }}
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+      - run: cargo clean
       # Install quality tools
       - run: |
           rustup component add clippy
