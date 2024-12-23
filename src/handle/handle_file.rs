@@ -2,8 +2,8 @@ use std::time::Instant;
 
 use log::info;
 
-use crate::api::Client;
 use crate::api::manage_reporting::{report_error, report_success};
+use crate::api::Client;
 use crate::common::error_model::Error;
 use crate::handle::handle_execution::handle_execution_result;
 use crate::process::file_exec::file_execution;

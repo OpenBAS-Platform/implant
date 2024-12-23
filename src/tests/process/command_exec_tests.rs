@@ -2,7 +2,6 @@ use crate::process::command_exec::decode_output;
 use crate::process::command_exec::format_powershell_command;
 use crate::process::command_exec::invoke_command;
 
-
 #[test]
 fn test_decode_output_with_hello() {
     let output = vec![72, 101, 108, 108, 111];
