@@ -1,7 +1,7 @@
-use std::sync::Arc;
-use std::time::Duration;
 use rustls::ClientConfig;
 use rustls_platform_verifier::BuilderVerifierExt;
+use std::sync::Arc;
+use std::time::Duration;
 use ureq::{Agent, Request};
 
 pub mod manage_inject;
