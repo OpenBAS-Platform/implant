@@ -5,8 +5,8 @@ use clap::Parser;
 use log::info;
 use rolling_file::{BasicRollingFileAppender, RollingConditionBasic};
 
-use crate::api::Client;
 use crate::api::manage_inject::{InjectorContractPayload, UpdateInput};
+use crate::api::Client;
 use crate::common::error_model::Error;
 use crate::handle::handle_command::{compute_command, handle_command, handle_execution_command};
 use crate::handle::handle_dns_resolution::handle_dns_resolution;
@@ -59,7 +59,7 @@ pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contrac
     for prerequisite in prerequisites.iter() {
         let mut check_status = 1;
         let check_cmd = &prerequisite.check_command;
-        if check_cmd.is_some() && !check_cmd.clone().unwrap().is_empty(){
+        if check_cmd.is_some() && !check_cmd.clone().unwrap().is_empty() {
             let check_prerequisites = compute_command(check_cmd.as_ref().unwrap());
             check_status = handle_execution_command(
                 "prerequisite check",
@@ -158,7 +158,12 @@ fn main() -> Result<(), Error> {
 
     let args = Args::parse();
     info!("Starting OpenBAS implant {} {}", VERSION, mode());
-    let api = Client::new(args.uri, args.token, args.unsecured_certificate == "true", args.with_proxy == "true");
+    let api = Client::new(
+        args.uri,
+        args.token,
+        args.unsecured_certificate == "true",
+        args.with_proxy == "true",
+    );
     let payload = api.get_executable_payload(args.inject_id.clone());
     let contract_payload = payload.unwrap_or_else(|err| panic!("Fail getting payload {}", err));
     handle_payload(args.inject_id.clone(), args.agent_id.clone(), &api, &contract_payload);

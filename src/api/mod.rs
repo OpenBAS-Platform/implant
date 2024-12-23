@@ -15,7 +15,12 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(server_url: String, token: String, unsecured_certificate: bool, with_proxy: bool) -> Client {
+    pub fn new(
+        server_url: String,
+        token: String,
+        unsecured_certificate: bool,
+        with_proxy: bool,
+    ) -> Client {
         let mut http_client = ureq::AgentBuilder::new()
             .timeout_connect(Duration::from_secs(2))
             .timeout(Duration::from_secs(5))
@@ -42,15 +47,17 @@ impl Client {
 
     pub fn post(&self, route: &str) -> Request {
         let api_route = format!("{}{}", self.server_url, route);
-        
-        self.http_client.post(&api_route)
+
+        self.http_client
+            .post(&api_route)
             .set("Authorization", &format!("Bearer {}", self.token))
     }
 
     pub fn get(&self, route: &str) -> Request {
         let api_route = format!("{}{}", self.server_url, route);
-        
-        self.http_client.get(&api_route)
+
+        self.http_client
+            .get(&api_route)
             .set("Authorization", &format!("Bearer {}", self.token))
     }
 }

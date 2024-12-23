@@ -1,6 +1,6 @@
-use std::{env, fs};
 use std::fs::File;
 use std::io::{BufWriter, Write};
+use std::{env, fs};
 
 use mailparse::{parse_content_disposition, parse_header};
 use serde::{Deserialize, Serialize};
@@ -68,9 +68,14 @@ pub struct UpdateInput {
 }
 
 impl Client {
-
-    pub fn get_executable_payload(&self, inject_id: String) -> Result<InjectorContractPayload, Error> {
-        match self.get(&format!("/api/injects/{}/executable-payload", inject_id)).call() {
+    pub fn get_executable_payload(
+        &self,
+        inject_id: String,
+    ) -> Result<InjectorContractPayload, Error> {
+        match self
+            .get(&format!("/api/injects/{}/executable-payload", inject_id))
+            .call()
+        {
             Ok(response) => Ok(response.into_json()?),
             Err(ureq::Error::Status(_, response)) => {
                 Err(Error::Api(response.into_string().unwrap()))

@@ -12,7 +12,7 @@ fn compute_working_file(filename: &str) -> PathBuf {
     executable_path.join(filename)
 }
 
-pub fn manage_result(invoke_output: Output) -> Result<ExecutionResult, Error>  {
+pub fn manage_result(invoke_output: Output) -> Result<ExecutionResult, Error> {
     let invoke_result = invoke_output.clone();
     // 0 success | other = maybe prevented
     let exit_code = invoke_result.status.code().unwrap_or(-99);
@@ -39,11 +39,17 @@ pub fn manage_result(invoke_output: Output) -> Result<ExecutionResult, Error>  {
 #[cfg(target_os = "windows")]
 pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
     let executor = "powershell.exe";
-    if !is_executor_present(executor){
-        return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
+    if !is_executor_present(executor) {
+        return Err(Error::Internal(format!(
+            "Executor '{}' is not available.",
+            executor
+        )));
     }
     let script_file_name = compute_working_file(filename);
-    let win_path = format!("$ErrorActionPreference = 'Stop'; & '{}'; exit $LASTEXITCODE", script_file_name.to_str().unwrap());
+    let win_path = format!(
+        "$ErrorActionPreference = 'Stop'; & '{}'; exit $LASTEXITCODE",
+        script_file_name.to_str().unwrap()
+    );
     let command_args = &[
         "-ExecutionPolicy",
         "Bypass",
@@ -66,8 +72,11 @@ pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
     let executor = "bash";
-    if !is_executor_present(executor){
-        return Err(Error::Internal(format!("Executor '{}' is not available.", executor)));
+    if !is_executor_present(executor) {
+        return Err(Error::Internal(format!(
+            "Executor '{}' is not available.",
+            executor
+        )));
     }
     let script_file_name = compute_working_file(filename);
     // Prepare and execute the command

@@ -4,8 +4,8 @@ use std::time::Instant;
 
 use log::info;
 
+use crate::api::manage_inject::InjectorContractPayload;
 use crate::api::Client;
-use crate::api::manage_inject::{InjectorContractPayload};
 use crate::handle::handle_execution::handle_execution_result;
 use crate::process::command_exec::command_execution;
 
