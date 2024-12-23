@@ -14,7 +14,7 @@ fn compute_working_dir() -> PathBuf {
     current_exe_patch.parent().unwrap().to_path_buf()
 }
 
-pub fn compute_command(command: &String) -> String {
+pub fn compute_command(command: &str) -> String {
     let executable_command = command.clone();
     let working_dir = compute_working_dir();
     executable_command.replace("#{location}", working_dir.to_str().unwrap())
@@ -25,7 +25,7 @@ pub fn handle_execution_command(
     api: &Client,
     inject_id: String,
     command: &String,
-    executor: &String,
+    executor: &str,
     pre_check: bool,
 ) -> i32 {
     let now = Instant::now();
