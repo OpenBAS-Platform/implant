@@ -11,13 +11,13 @@ use crate::process::command_exec::command_execution;
 
 fn compute_working_dir() -> PathBuf {
     let current_exe_patch = env::current_exe().unwrap();
-    return current_exe_patch.parent().unwrap().to_path_buf();
+    current_exe_patch.parent().unwrap().to_path_buf()
 }
 
 pub fn compute_command(command: &String) -> String {
     let executable_command = command.clone();
     let working_dir = compute_working_dir();
-    return executable_command.replace("#{location}", working_dir.to_str().unwrap());
+    executable_command.replace("#{location}", working_dir.to_str().unwrap())
 }
 
 pub fn handle_execution_command(
@@ -42,7 +42,7 @@ pub fn handle_command(inject_id: String, agent_id: String, api: &Client, contrac
     let executable_command = compute_command(&command);
     let _ = handle_execution_command(
         "implant execution",
-        &api,
+        api,
         inject_id.clone(),
         agent_id.clone(),
         &executable_command,

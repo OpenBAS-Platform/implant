@@ -44,7 +44,7 @@ struct Args {
 }
 
 pub fn mode() -> String {
-    return env::var("env").unwrap_or_else(|_| ENV_PRODUCTION.into());
+    env::var("env").unwrap_or_else(|_| ENV_PRODUCTION.into())
 }
 
 pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contract_payload: &InjectorContractPayload) {
@@ -63,7 +63,7 @@ pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contrac
             let check_prerequisites = compute_command(check_cmd.as_ref().unwrap());
             check_status = handle_execution_command(
                 "prerequisite check",
-                &api,
+                api,
                 inject_id.clone(),
                 agent_id.clone(),
                 &check_prerequisites,
@@ -76,7 +76,7 @@ pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contrac
             let install_prerequisites = compute_command(&prerequisite.get_command);
             prerequisites_code += handle_execution_command(
                 "prerequisite execution",
-                &api,
+                api,
                 inject_id.clone(),
                 agent_id.clone(),
                 &install_prerequisites,
@@ -130,7 +130,7 @@ pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contrac
         let executor = contract_payload.payload_cleanup_executor.clone().unwrap();
         let _ = handle_execution_command(
             "cleanup execution",
-            &api,
+            api,
             inject_id.clone(),
             agent_id.clone(),
             &executable_cleanup,
@@ -163,5 +163,5 @@ fn main() -> Result<(), Error> {
     let contract_payload = payload.unwrap_or_else(|err| panic!("Fail getting payload {}", err));
     handle_payload(args.inject_id.clone(), args.agent_id.clone(), &api, &contract_payload);
     // endregion
-    return Ok(());
+    Ok(())
 }

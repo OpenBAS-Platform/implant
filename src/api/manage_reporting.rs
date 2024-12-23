@@ -13,7 +13,7 @@ pub fn report_success(
 ) {
     let message = ExecutionOutput {
         action: String::from(semantic),
-        stderr: stderr.unwrap_or(String::new()),
+        stderr: stderr.unwrap_or_default(),
         stdout,
         exit_code: -1,
     };
@@ -40,7 +40,7 @@ pub fn report_error(
 ) {
     let message = ExecutionOutput {
         action: String::from(semantic),
-        stdout: stdout.unwrap_or(String::new()),
+        stdout: stdout.unwrap_or_default(),
         stderr,
         exit_code: -1,
     };

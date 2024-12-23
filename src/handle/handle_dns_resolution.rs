@@ -21,10 +21,10 @@ pub fn handle_dns_resolution(inject_id: String, agent_id: String, api: &Client, 
                     "{hostname}: {}",
                     addrs
                         .map(|socket_addr: SocketAddr| {
-                            return match socket_addr {
+                            match socket_addr {
                                 SocketAddr::V4(v4) => v4.ip().to_string(),
                                 SocketAddr::V6(v6) => v6.ip().to_string(),
-                            };
+                            }
                         })
                         .collect::<Vec<_>>()
                         .join(", ")

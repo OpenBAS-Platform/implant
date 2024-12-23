@@ -70,13 +70,13 @@ pub struct UpdateInput {
 impl Client {
 
     pub fn get_executable_payload(&self, inject_id: String) -> Result<InjectorContractPayload, Error> {
-        return match self.get(&format!("/api/injects/{}/executable-payload", inject_id)).call() {
+        match self.get(&format!("/api/injects/{}/executable-payload", inject_id)).call() {
             Ok(response) => Ok(response.into_json()?),
             Err(ureq::Error::Status(_, response)) => {
                 Err(Error::Api(response.into_string().unwrap()))
             }
             Err(err) => Err(Error::Internal(err.to_string())),
-        };
+        }
     }
 
     pub fn update_status(
@@ -99,7 +99,7 @@ impl Client {
     }
 
     pub fn download_file(&self, document_id: &String, in_memory: bool) -> Result<String, Error> {
-        return match self
+        match self
             .get(&format!("/api/documents/{}/file", document_id))
             .call()
         {
@@ -112,7 +112,7 @@ impl Client {
                 let executable_path = current_exe_patch.parent().unwrap();
                 let name = dis.params.get("filename").unwrap();
                 let file_directory = executable_path.join(name);
-                return if in_memory {
+                if in_memory {
                     let buf = BufWriter::new(Vec::new());
                     let _ = write_response(buf, response);
                     Ok(String::from(name))
@@ -126,12 +126,12 @@ impl Client {
                             return Err(Error::Io(err));
                         }
                     };
-                };
+                }
             }
             Err(ureq::Error::Status(_, response)) => {
                 Err(Error::Api(response.into_string().unwrap()))
             }
             Err(err) => Err(Error::Internal(err.to_string())),
-        };
+        }
     }
 }
