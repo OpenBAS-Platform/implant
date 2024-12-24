@@ -27,7 +27,7 @@ jobs:
       - run: cargo clippy -- -D warnings
       - run: cargo fmt -- --check
       - run: cargo audit
-      - run: cargo test --release --ignored
+      - run: cargo test --release -- --ignored
       - run: cargo build --release
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
@@ -81,7 +81,7 @@ jobs:
       - run: cargo clippy -- -D warnings
       - run: cargo fmt -- --check
       - run: cargo audit
-      - run: cargo test --release --ignored
+      - run: cargo test --release -- --ignored
       - run: $env:PATH = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\Llvm\ARM64\bin;" + $env:PATH; Invoke-Expression '& "$env:USERPROFILE\.cargo\bin\cargo" build --release'
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
@@ -135,7 +135,7 @@ jobs:
       - run: cargo clippy -- -D warnings
       - run: cargo fmt -- --check
       - run: cargo audit
-      - run: cargo test --release --ignored
+      - run: cargo test --release -- --ignored
       - run: . "$HOME/.cargo/env"; cargo build --target=x86_64-unknown-linux-musl --release
       - run: strip ./target/x86_64-unknown-linux-musl/release/openbas-implant
       - save_cache:
@@ -189,7 +189,7 @@ jobs:
       - run: cargo clippy -- -D warnings
       - run: cargo fmt -- --check
       - run: cargo audit
-      - run: cargo test --release --ignored
+      - run: cargo test --release -- --ignored
       - run: . "$HOME/.cargo/env"; cargo build --target=aarch64-unknown-linux-musl --release
       - run: strip ./target/aarch64-unknown-linux-musl/release/openbas-implant
       - save_cache:
@@ -241,7 +241,7 @@ jobs:
       - run: cargo clippy -- -D warnings
       - run: cargo fmt -- --check
       - run: cargo audit
-      - run: cargo test --release --ignored
+      - run: cargo test --release -- --ignored
       - run: . "$HOME/.cargo/env"; cargo build --release
       - run: strip ./target/release/openbas-implant
       - save_cache:
@@ -289,7 +289,7 @@ jobs:
       - run: cargo clippy -- -D warnings
       - run: cargo fmt -- --check
       - run: cargo audit
-      - run: cargo test --release --ignored
+      - run: cargo test --release -- --ignored
       - run: . "$HOME/.cargo/env"; cargo build --release
       - run: strip ./target/release/openbas-implant
       - save_cache:
