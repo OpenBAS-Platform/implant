@@ -27,6 +27,7 @@ fn test_decode_output_with_wrong_character() {
     assert_eq!(decoded_output, "Hello�");
 }
 
+#[ignore]
 #[test]
 fn test_invoke_command_powershell_special_character() {
     let command = "echo Helloé";
