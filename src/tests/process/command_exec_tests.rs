@@ -1,6 +1,5 @@
 use crate::process::command_exec::decode_output;
 use crate::process::command_exec::format_powershell_command;
-use crate::process::command_exec::format_windows_command;
 use crate::process::command_exec::invoke_command;
 
 
