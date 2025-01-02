@@ -2,8 +2,8 @@ use std::time::Instant;
 
 use log::info;
 
-use crate::api::Client;
 use crate::api::manage_reporting::{report_error, report_success};
+use crate::api::Client;
 use crate::common::error_model::Error;
 use crate::handle::handle_execution::handle_execution_result;
 use crate::process::file_exec::file_execution;
@@ -18,7 +18,7 @@ pub fn handle_execution_file(
     info!("{} execution: {:?}", semantic, filename);
     let command_result = file_execution(filename.as_str());
     let elapsed = now.elapsed().as_millis();
-    return handle_execution_result(semantic, api, inject_id, command_result, elapsed);
+    handle_execution_result(semantic, api, inject_id, command_result, elapsed)
 }
 
 pub fn handle_file(
@@ -27,7 +27,7 @@ pub fn handle_file(
     file_target: &Option<String>,
     in_memory: bool,
 ) -> Result<String, Error> {
-    return match file_target {
+    match file_target {
         None => {
             let stderr = String::from("Payload download fail, document not specified");
             report_error(api, "file drop", inject_id.clone(), None, stderr.clone(), 0);
@@ -50,5 +50,5 @@ pub fn handle_file(
                 }
             }
         }
-    };
+    }
 }

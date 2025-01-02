@@ -106,6 +106,17 @@ jobs:
       - run: sudo apt-get -y install curl musl-tools
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - run: . "$HOME/.cargo/env"; rustup target add x86_64-unknown-linux-musl
+      # Install quality tools
+      - run: |
+          rustup component add clippy
+          rustup component add rustfmt
+          cargo install cargo-audit
+      # Run checks
+      - run: cargo check
+      - run: cargo clippy -- -D warnings
+      - run: cargo fmt -- --check
+      - run: cargo audit
+      - run: cargo test --release
       - run: . "$HOME/.cargo/env"; cargo build --target=x86_64-unknown-linux-musl --release
       - run: strip ./target/x86_64-unknown-linux-musl/release/openbas-implant
       - save_cache:
@@ -150,6 +161,17 @@ jobs:
       - run: sudo apt-get -y install curl musl-tools
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - run: . "$HOME/.cargo/env"; rustup target add aarch64-unknown-linux-musl
+      # Install quality tools
+      - run: |
+          rustup component add clippy
+          rustup component add rustfmt
+          cargo install cargo-audit
+      # Run checks
+      - run: cargo check
+      - run: cargo clippy -- -D warnings
+      - run: cargo fmt -- --check
+      - run: cargo audit
+      - run: cargo test --release
       - run: . "$HOME/.cargo/env"; cargo build --target=aarch64-unknown-linux-musl --release
       - run: strip ./target/aarch64-unknown-linux-musl/release/openbas-implant
       - save_cache:
@@ -192,6 +214,17 @@ jobs:
             - cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
             - cargo-{{ arch }}
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+      # Install quality tools
+      - run: |
+          rustup component add clippy
+          rustup component add rustfmt
+          cargo install cargo-audit
+      # Run checks
+      - run: cargo check
+      - run: cargo clippy -- -D warnings
+      - run: cargo fmt -- --check
+      - run: cargo audit
+      - run: cargo test --release 
       - run: . "$HOME/.cargo/env"; cargo build --release
       - run: strip ./target/release/openbas-implant
       - save_cache:
@@ -230,6 +263,17 @@ jobs:
             - cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
             - cargo-{{ arch }}
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+      # Install quality tools
+      - run: |
+          rustup component add clippy
+          rustup component add rustfmt
+          cargo install cargo-audit
+      # Run checks
+      - run: cargo check
+      - run: cargo clippy -- -D warnings
+      - run: cargo fmt -- --check
+      - run: cargo audit
+      - run: cargo test --release 
       - run: . "$HOME/.cargo/env"; cargo build --release
       - run: strip ./target/release/openbas-implant
       - save_cache:

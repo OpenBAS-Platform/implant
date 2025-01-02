@@ -12,7 +12,7 @@ impl fmt::Display for Error {
         match self {
             Error::Internal(message) => write!(f, "{}", message),
             Error::Api(api_message) => write!(f, "{}", api_message),
-            Error::Io(io) => write!(f, "{}", io.to_string()),
+            Error::Io(io) => write!(f, "{}", io),
         }
     }
 }
