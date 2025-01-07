@@ -31,7 +31,7 @@ pub fn handle_execution_command(
 ) -> i32 {
     let now = Instant::now();
     info!("{} execution: {:?}", semantic, command);
-    let command_result = command_execution(command.as_str(), executor, pre_check);
+    let command_result = command_execution(command, executor, pre_check);
     let elapsed = now.elapsed().as_millis();
     return handle_execution_result(semantic, api, inject_id, agent_id, command_result, elapsed);
 }
