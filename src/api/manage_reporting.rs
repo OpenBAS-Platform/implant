@@ -24,7 +24,7 @@ pub fn report_success(
         UpdateInput {
             execution_message,
             execution_status: String::from("SUCCESS"),
-            execution_duration: duration
+            execution_duration: duration,
         },
     );
 }
