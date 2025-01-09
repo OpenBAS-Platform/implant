@@ -25,7 +25,7 @@ pub fn handle_execution_command(
     api: &Client,
     inject_id: String,
     agent_id: String,
-    command: &String,
+    command: &str,
     executor: &str,
     pre_check: bool,
 ) -> i32 {
