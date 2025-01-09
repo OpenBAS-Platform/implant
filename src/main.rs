@@ -97,16 +97,16 @@ pub fn handle_payload(
         let payload_type = &contract_payload.payload_type;
         match payload_type.as_str() {
             "Command" => {
-                handle_command(inject_id.clone(), agent_id.clone(), &api, &contract_payload)
+                handle_command(inject_id.clone(), agent_id.clone(), api, contract_payload)
             }
             "DnsResolution" => {
-                handle_dns_resolution(inject_id.clone(), agent_id.clone(), &api, &contract_payload)
+                handle_dns_resolution(inject_id.clone(), agent_id.clone(), api, contract_payload)
             }
             "Executable" => {
-                handle_file_execute(inject_id.clone(), agent_id.clone(), &api, &contract_payload)
+                handle_file_execute(inject_id.clone(), agent_id.clone(), api, contract_payload)
             }
             "FileDrop" => {
-                handle_file_drop(inject_id.clone(), agent_id.clone(), &api, &contract_payload)
+                handle_file_drop(inject_id.clone(), agent_id.clone(), api, contract_payload)
             }
             // "NetworkTraffic" => {}, // Not implemented yet
             _ => {
