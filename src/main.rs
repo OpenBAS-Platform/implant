@@ -96,9 +96,7 @@ pub fn handle_payload(
     if prerequisites_code == 0 {
         let payload_type = &contract_payload.payload_type;
         match payload_type.as_str() {
-            "Command" => {
-                handle_command(inject_id.clone(), agent_id.clone(), api, contract_payload)
-            }
+            "Command" => handle_command(inject_id.clone(), agent_id.clone(), api, contract_payload),
             "DnsResolution" => {
                 handle_dns_resolution(inject_id.clone(), agent_id.clone(), api, contract_payload)
             }
