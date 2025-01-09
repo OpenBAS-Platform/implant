@@ -19,7 +19,7 @@ pub fn handle_execution_file(
     info!("{} execution: {:?}", semantic, filename);
     let command_result = file_execution(filename.as_str());
     let elapsed = now.elapsed().as_millis();
-    return handle_execution_result(semantic, api, inject_id, agent_id, command_result, elapsed);
+    handle_execution_result(semantic, api, inject_id, agent_id, command_result, elapsed)
 }
 
 pub fn handle_file(
@@ -32,7 +32,15 @@ pub fn handle_file(
     match file_target {
         None => {
             let stderr = String::from("Payload download fail, document not specified");
-            report_error(api, "file drop", inject_id.clone(), agent_id.clone(), None, stderr.clone(), 0);
+            report_error(
+                api,
+                "file drop",
+                inject_id.clone(),
+                agent_id.clone(),
+                None,
+                stderr.clone(),
+                0,
+            );
             Err(Error::Internal(stderr))
         }
         Some(document_id) => {
@@ -42,12 +50,28 @@ pub fn handle_file(
             match download {
                 Ok(filename) => {
                     let stdout = String::from("File downloaded with success");
-                    report_success(api, "file drop", inject_id.clone(), agent_id.clone(), stdout, None, elapsed);
+                    report_success(
+                        api,
+                        "file drop",
+                        inject_id.clone(),
+                        agent_id.clone(),
+                        stdout,
+                        None,
+                        elapsed,
+                    );
                     Ok(filename)
                 }
                 Err(err) => {
                     let stderr = format!("{:?}", err);
-                    report_error(api, "file drop", inject_id.clone(), agent_id.clone(), None, stderr, elapsed);
+                    report_error(
+                        api,
+                        "file drop",
+                        inject_id.clone(),
+                        agent_id.clone(),
+                        None,
+                        stderr,
+                        elapsed,
+                    );
                     Err(err)
                 }
             }

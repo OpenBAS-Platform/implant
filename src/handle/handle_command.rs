@@ -33,10 +33,15 @@ pub fn handle_execution_command(
     info!("{} execution: {:?}", semantic, command);
     let command_result = command_execution(command, executor, pre_check);
     let elapsed = now.elapsed().as_millis();
-    return handle_execution_result(semantic, api, inject_id, agent_id, command_result, elapsed);
+    handle_execution_result(semantic, api, inject_id, agent_id, command_result, elapsed)
 }
 
-pub fn handle_command(inject_id: String, agent_id: String, api: &Client, contract_payload: &InjectorContractPayload) {
+pub fn handle_command(
+    inject_id: String,
+    agent_id: String,
+    api: &Client,
+    contract_payload: &InjectorContractPayload,
+) {
     let command = contract_payload.command_content.clone().unwrap();
     let executor = contract_payload.command_executor.clone().unwrap();
     let executable_command = compute_command(&command);

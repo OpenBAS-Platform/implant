@@ -92,7 +92,10 @@ impl Client {
     ) -> Result<UpdateInjectResponse, Error> {
         let post_data = ureq::json!(input);
         match self
-            .post(&format!("/api/injects/execution/{}/callback/{}", agent_id, inject_id))
+            .post(&format!(
+                "/api/injects/execution/{}/callback/{}",
+                agent_id, inject_id
+            ))
             .send_json(post_data)
         {
             Ok(response) => Ok(response.into_json()?),
