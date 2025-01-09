@@ -82,11 +82,12 @@ impl Client {
     pub fn update_status(
         &self,
         inject_id: String,
+        agent_id: String,
         input: UpdateInput,
     ) -> Result<UpdateInjectResponse, Error> {
         let post_data = ureq::json!(input);
-        return match self
-            .post(&format!("/api/injects/execution/callback/{}", inject_id))
+        match self
+            .post(&format!("/api/injects/execution/{}/callback/{}", agent_id, inject_id))
             .send_json(post_data)
         {
             Ok(response) => Ok(response.into_json()?),
@@ -94,7 +95,7 @@ impl Client {
                 Err(Error::Api(response.into_string().unwrap()))
             }
             Err(err) => Err(Error::Internal(err.to_string())),
-        };
+        }
     }
 
     pub fn download_file(&self, document_id: &String, in_memory: bool) -> Result<String, Error> {

@@ -10,6 +10,7 @@ pub fn handle_execution_result(
     semantic: &str,
     api: &Client,
     inject_id: String,
+    agent_id: String,
     command_result: Result<ExecutionResult, Error>,
     elapsed: u128,
 ) -> i32 {
@@ -29,6 +30,7 @@ pub fn handle_execution_result(
             let execution_message = serde_json::to_string(&message).unwrap();
             let _ = api.update_status(
                 inject_id,
+                agent_id,
                 UpdateInput {
                     execution_message,
                     execution_status: res.status,
@@ -51,6 +53,7 @@ pub fn handle_execution_result(
             let execution_message = serde_json::to_string(&message).unwrap();
             let _ = api.update_status(
                 inject_id,
+                agent_id,
                 UpdateInput {
                     execution_message,
                     execution_status: String::from("ERROR"),

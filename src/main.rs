@@ -38,6 +38,8 @@ struct Args {
     #[arg(short, long)]
     with_proxy: String,
     #[arg(short, long)]
+    agent_id: String,
+    #[arg(short, long)]
     inject_id: String,
 }
 
@@ -45,7 +47,7 @@ pub fn mode() -> String {
     return env::var("env").unwrap_or_else(|_| ENV_PRODUCTION.into());
 }
 
-pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &InjectorContractPayload) {
+pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contract_payload: &InjectorContractPayload) {
     let mut prerequisites_code = 0;
     // region prerequisite execution
     let prerequisites_data = &contract_payload.payload_prerequisites;
@@ -63,6 +65,7 @@ pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &Inject
                 "prerequisite check",
                 &api,
                 inject_id.clone(),
+                agent_id.clone(),
                 &check_prerequisites,
                 &prerequisite.executor,
                 true,
@@ -75,6 +78,7 @@ pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &Inject
                 "prerequisite execution",
                 &api,
                 inject_id.clone(),
+                agent_id.clone(),
                 &install_prerequisites,
                 &prerequisite.executor,
                 false,
@@ -87,14 +91,15 @@ pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &Inject
     if prerequisites_code == 0 {
         let payload_type = &contract_payload.payload_type;
         match payload_type.as_str() {
-            "Command" => handle_command(inject_id.clone(), &api, &contract_payload),
-            "DnsResolution" => handle_dns_resolution(inject_id.clone(), &api, &contract_payload),
-            "Executable" => handle_file_execute(inject_id.clone(), &api, &contract_payload),
-            "FileDrop" => handle_file_drop(inject_id.clone(), &api, &contract_payload),
+            "Command" => handle_command(inject_id.clone(), agent_id.clone(), &api, &contract_payload),
+            "DnsResolution" => handle_dns_resolution(inject_id.clone(), agent_id.clone(), &api, &contract_payload),
+            "Executable" => handle_file_execute(inject_id.clone(), agent_id.clone(), &api, &contract_payload),
+            "FileDrop" => handle_file_drop(inject_id.clone(), agent_id.clone(), &api, &contract_payload),
             // "NetworkTraffic" => {}, // Not implemented yet
             _ => {
                 let _ = api.update_status(
                     inject_id.clone(),
+                    agent_id.clone(),
                     UpdateInput {
                         execution_message: String::from("Payload execution type not supported."),
                         execution_status: String::from("ERROR"),
@@ -106,6 +111,7 @@ pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &Inject
     } else {
         let _ = api.update_status(
             inject_id.clone(),
+            agent_id.clone(),
             UpdateInput {
                 execution_message: String::from(
                     "Payload execution not executed due to dependencies failure.",
@@ -126,6 +132,7 @@ pub fn handle_payload(inject_id: String, api: &Client, contract_payload: &Inject
             "cleanup execution",
             &api,
             inject_id.clone(),
+            agent_id.clone(),
             &executable_cleanup,
             &executor,
             false,
@@ -154,7 +161,7 @@ fn main() -> Result<(), Error> {
     let api = Client::new(args.uri, args.token, args.unsecured_certificate == "true", args.with_proxy == "true");
     let payload = api.get_executable_payload(args.inject_id.clone());
     let contract_payload = payload.unwrap_or_else(|err| panic!("Fail getting payload {}", err));
-    handle_payload(args.inject_id.clone(), &api, &contract_payload);
+    handle_payload(args.inject_id.clone(), args.agent_id.clone(), &api, &contract_payload);
     // endregion
     return Ok(());
 }
