@@ -268,7 +268,7 @@ workflows:
             branches:
               ignore:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - windows_x86_64_build:
           filters:
             tags:
@@ -276,7 +276,7 @@ workflows:
             branches:
               only:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - windows_arm_64_compile:
           filters:
             tags:
@@ -284,7 +284,7 @@ workflows:
             branches:
               ignore:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - windows_arm_64_build:
           filters:
             tags:
@@ -292,7 +292,7 @@ workflows:
             branches:
               only:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - linux_x86_64_compile:
           filters:
             tags:
@@ -300,7 +300,7 @@ workflows:
             branches:
               ignore:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - linux_x86_64_build:
           filters:
             tags:
@@ -308,7 +308,7 @@ workflows:
             branches:
               only:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - linux_arm_64_compile:
           filters:
             tags:
@@ -316,7 +316,7 @@ workflows:
             branches:
               ignore:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - linux_arm_64_build:
           filters:
             tags:
@@ -324,7 +324,7 @@ workflows:
             branches:
               only:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - macos_arm_64_compile:
           filters:
             tags:
@@ -332,7 +332,7 @@ workflows:
             branches:
               ignore:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - macos_arm_64_build:
           filters:
             tags:
@@ -340,7 +340,7 @@ workflows:
             branches:
               only:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - macos_x86_64_compile:
           filters:
             tags:
@@ -348,7 +348,7 @@ workflows:
             branches:
               ignore:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
       - macos_x86_64_build:
           filters:
             tags:
@@ -356,4 +356,4 @@ workflows:
             branches:
               only:
                 - main
-                - /^release\/\d+\.\d+\.\d+$/
+                - release/current
