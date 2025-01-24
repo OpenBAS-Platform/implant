@@ -35,7 +35,6 @@ pub fn handle_dns_resolution(
                 );
                 let stderr = String::new();
                 let message = ExecutionOutput {
-                    action: String::from("dns resolution"),
                     stdout,
                     stderr,
                     exit_code: 0,
@@ -44,13 +43,13 @@ pub fn handle_dns_resolution(
                     execution_message: serde_json::to_string(&message).unwrap(),
                     execution_status: String::from("SUCCESS"),
                     execution_duration: 0,
+                    execution_action: String::from("dns_resolution")
                 }
             }
             Err(error) => {
                 let stdout = String::new();
                 let stderr = error.to_string();
                 let message = ExecutionOutput {
-                    action: String::from("dns resolution"),
                     stdout,
                     stderr,
                     exit_code: 1,
@@ -59,6 +58,7 @@ pub fn handle_dns_resolution(
                     execution_message: serde_json::to_string(&message).unwrap(),
                     execution_status: String::from("ERROR"),
                     execution_duration: 0,
+                    execution_action: String::from("dns_resolution")
                 }
             }
         };

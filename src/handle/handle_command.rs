@@ -46,7 +46,7 @@ pub fn handle_command(
     let executor = contract_payload.command_executor.clone().unwrap();
     let executable_command = compute_command(&command);
     let _ = handle_execution_command(
-        "implant execution",
+        "command_execution",
         api,
         inject_id.clone(),
         agent_id.clone(),

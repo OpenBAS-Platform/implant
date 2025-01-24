@@ -9,7 +9,6 @@ pub mod handle_file_execute;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ExecutionOutput {
-    pub action: String,
     pub stdout: String,
     pub stderr: String,
     pub exit_code: i32,

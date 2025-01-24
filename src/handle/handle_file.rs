@@ -34,7 +34,7 @@ pub fn handle_file(
             let stderr = String::from("Payload download fail, document not specified");
             report_error(
                 api,
-                "file drop",
+                "file_drop",
                 inject_id.clone(),
                 agent_id.clone(),
                 None,
@@ -52,7 +52,7 @@ pub fn handle_file(
                     let stdout = String::from("File downloaded with success");
                     report_success(
                         api,
-                        "file drop",
+                        "file_drop",
                         inject_id.clone(),
                         agent_id.clone(),
                         stdout,
@@ -65,7 +65,7 @@ pub fn handle_file(
                     let stderr = format!("{:?}", err);
                     report_error(
                         api,
-                        "file drop",
+                        "file_drop",
                         inject_id.clone(),
                         agent_id.clone(),
                         None,
