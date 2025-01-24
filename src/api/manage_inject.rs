@@ -1,6 +1,6 @@
-use std::{env, fs};
 use std::fs::File;
 use std::io::{BufWriter, Write};
+use std::{env, fs};
 
 use mailparse::{parse_content_disposition, parse_header};
 use serde::{Deserialize, Serialize};
@@ -68,15 +68,20 @@ pub struct UpdateInput {
 }
 
 impl Client {
-
-    pub fn get_executable_payload(&self, inject_id: String) -> Result<InjectorContractPayload, Error> {
-        return match self.get(&format!("/api/injects/{}/executable-payload", inject_id)).call() {
+    pub fn get_executable_payload(
+        &self,
+        inject_id: String,
+    ) -> Result<InjectorContractPayload, Error> {
+        match self
+            .get(&format!("/api/injects/{}/executable-payload", inject_id))
+            .call()
+        {
             Ok(response) => Ok(response.into_json()?),
             Err(ureq::Error::Status(_, response)) => {
                 Err(Error::Api(response.into_string().unwrap()))
             }
             Err(err) => Err(Error::Internal(err.to_string())),
-        };
+        }
     }
 
     pub fn update_status(
@@ -87,7 +92,10 @@ impl Client {
     ) -> Result<UpdateInjectResponse, Error> {
         let post_data = ureq::json!(input);
         match self
-            .post(&format!("/api/injects/execution/{}/callback/{}", agent_id, inject_id))
+            .post(&format!(
+                "/api/injects/execution/{}/callback/{}",
+                agent_id, inject_id
+            ))
             .send_json(post_data)
         {
             Ok(response) => Ok(response.into_json()?),
@@ -99,7 +107,7 @@ impl Client {
     }
 
     pub fn download_file(&self, document_id: &String, in_memory: bool) -> Result<String, Error> {
-        return match self
+        match self
             .get(&format!("/api/documents/{}/file", document_id))
             .call()
         {
@@ -112,26 +120,26 @@ impl Client {
                 let executable_path = current_exe_patch.parent().unwrap();
                 let name = dis.params.get("filename").unwrap();
                 let file_directory = executable_path.join(name);
-                return if in_memory {
+                if in_memory {
                     let buf = BufWriter::new(Vec::new());
                     let _ = write_response(buf, response);
                     Ok(String::from(name))
                 } else {
                     let output_file = File::create(file_directory.clone()).unwrap();
                     let file_write = write_response(output_file, response);
-                    return match file_write {
+                    match file_write {
                         Ok(_) => Ok(String::from(name)),
                         Err(err) => {
                             let _ = fs::remove_file(file_directory.clone());
-                            return Err(Error::Io(err));
+                            Err(Error::Io(err))
                         }
-                    };
-                };
+                    }
+                }
             }
             Err(ureq::Error::Status(_, response)) => {
                 Err(Error::Api(response.into_string().unwrap()))
             }
             Err(err) => Err(Error::Internal(err.to_string())),
-        };
+        }
     }
 }

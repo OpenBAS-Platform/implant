@@ -1,7 +1,5 @@
 use std::process::Command;
 
-
-
 pub fn is_executor_present(executor: &str) -> bool {
     Command::new(executor)
         .spawn()

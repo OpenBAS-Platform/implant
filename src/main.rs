@@ -5,8 +5,8 @@ use clap::Parser;
 use log::info;
 use rolling_file::{BasicRollingFileAppender, RollingConditionBasic};
 
-use crate::api::Client;
 use crate::api::manage_inject::{InjectorContractPayload, UpdateInput};
+use crate::api::Client;
 use crate::common::error_model::Error;
 use crate::handle::handle_command::{compute_command, handle_command, handle_execution_command};
 use crate::handle::handle_dns_resolution::handle_dns_resolution;
@@ -44,10 +44,15 @@ struct Args {
 }
 
 pub fn mode() -> String {
-    return env::var("env").unwrap_or_else(|_| ENV_PRODUCTION.into());
+    env::var("env").unwrap_or_else(|_| ENV_PRODUCTION.into())
 }
 
-pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contract_payload: &InjectorContractPayload) {
+pub fn handle_payload(
+    inject_id: String,
+    agent_id: String,
+    api: &Client,
+    contract_payload: &InjectorContractPayload,
+) {
     let mut prerequisites_code = 0;
     // region prerequisite execution
     let prerequisites_data = &contract_payload.payload_prerequisites;
@@ -59,11 +64,11 @@ pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contrac
     for prerequisite in prerequisites.iter() {
         let mut check_status = 1;
         let check_cmd = &prerequisite.check_command;
-        if check_cmd.is_some() && !check_cmd.clone().unwrap().is_empty(){
+        if check_cmd.is_some() && !check_cmd.clone().unwrap().is_empty() {
             let check_prerequisites = compute_command(check_cmd.as_ref().unwrap());
             check_status = handle_execution_command(
                 "prerequisite check",
-                &api,
+                api,
                 inject_id.clone(),
                 agent_id.clone(),
                 &check_prerequisites,
@@ -76,7 +81,7 @@ pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contrac
             let install_prerequisites = compute_command(&prerequisite.get_command);
             prerequisites_code += handle_execution_command(
                 "prerequisite execution",
-                &api,
+                api,
                 inject_id.clone(),
                 agent_id.clone(),
                 &install_prerequisites,
@@ -91,10 +96,16 @@ pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contrac
     if prerequisites_code == 0 {
         let payload_type = &contract_payload.payload_type;
         match payload_type.as_str() {
-            "Command" => handle_command(inject_id.clone(), agent_id.clone(), &api, &contract_payload),
-            "DnsResolution" => handle_dns_resolution(inject_id.clone(), agent_id.clone(), &api, &contract_payload),
-            "Executable" => handle_file_execute(inject_id.clone(), agent_id.clone(), &api, &contract_payload),
-            "FileDrop" => handle_file_drop(inject_id.clone(), agent_id.clone(), &api, &contract_payload),
+            "Command" => handle_command(inject_id.clone(), agent_id.clone(), api, contract_payload),
+            "DnsResolution" => {
+                handle_dns_resolution(inject_id.clone(), agent_id.clone(), api, contract_payload)
+            }
+            "Executable" => {
+                handle_file_execute(inject_id.clone(), agent_id.clone(), api, contract_payload)
+            }
+            "FileDrop" => {
+                handle_file_drop(inject_id.clone(), agent_id.clone(), api, contract_payload)
+            }
             // "NetworkTraffic" => {}, // Not implemented yet
             _ => {
                 let _ = api.update_status(
@@ -130,7 +141,7 @@ pub fn handle_payload(inject_id: String, agent_id: String, api: &Client, contrac
         let executor = contract_payload.payload_cleanup_executor.clone().unwrap();
         let _ = handle_execution_command(
             "cleanup execution",
-            &api,
+            api,
             inject_id.clone(),
             agent_id.clone(),
             &executable_cleanup,
@@ -158,10 +169,20 @@ fn main() -> Result<(), Error> {
 
     let args = Args::parse();
     info!("Starting OpenBAS implant {} {}", VERSION, mode());
-    let api = Client::new(args.uri, args.token, args.unsecured_certificate == "true", args.with_proxy == "true");
+    let api = Client::new(
+        args.uri,
+        args.token,
+        args.unsecured_certificate == "true",
+        args.with_proxy == "true",
+    );
     let payload = api.get_executable_payload(args.inject_id.clone());
     let contract_payload = payload.unwrap_or_else(|err| panic!("Fail getting payload {}", err));
-    handle_payload(args.inject_id.clone(), args.agent_id.clone(), &api, &contract_payload);
+    handle_payload(
+        args.inject_id.clone(),
+        args.agent_id.clone(),
+        &api,
+        &contract_payload,
+    );
     // endregion
-    return Ok(());
+    Ok(())
 }
