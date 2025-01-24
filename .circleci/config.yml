@@ -49,6 +49,7 @@ jobs:
       - run: rustup toolchain install stable-x86_64-pc-windows-msvc
       - run: rustup default stable-x86_64-pc-windows-msvc
       - run: cargo build --release
+      - run: cargo test --release
       - run:
           name: push to jfrog
           command: | 
@@ -110,6 +111,7 @@ jobs:
       - run: Invoke-Expression '& "$env:USERPROFILE\.cargo\bin\rustup" toolchain install stable-aarch64-pc-windows-msvc'
       - run: Invoke-Expression '& "$env:USERPROFILE\.cargo\bin\rustup" default stable-aarch64-pc-windows-msvc'
       - run: $env:PATH = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\Llvm\ARM64\bin;" + $env:PATH; Invoke-Expression '& "$env:USERPROFILE\.cargo\bin\cargo" build --release'
+      - run: $env:PATH = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\Llvm\ARM64\bin;" + $env:PATH; Invoke-Expression '& "$env:USERPROFILE\.cargo\bin\cargo" test --release'
       - run:
           name: push to jfrog
           command: |
@@ -143,7 +145,7 @@ jobs:
       - run: cargo fmt -- --check
       - run: cargo audit
       - run: . "$HOME/.cargo/env"; cargo build --target=x86_64-unknown-linux-musl --release
-      - run: cargo test --release
+      - run: . "$HOME/.cargo/env"; cargo test --release
       - run: strip ./target/x86_64-unknown-linux-musl/release/openbas-implant
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
@@ -163,6 +165,7 @@ jobs:
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - run: . "$HOME/.cargo/env"; rustup target add x86_64-unknown-linux-musl
       - run: . "$HOME/.cargo/env"; cargo build --target=x86_64-unknown-linux-musl --release
+      - run: . "$HOME/.cargo/env"; cargo test --release
       - run: strip ./target/x86_64-unknown-linux-musl/release/openbas-implant
       - run:
           name: push to jfrog
@@ -198,7 +201,7 @@ jobs:
       - run: cargo fmt -- --check
       - run: cargo audit
       - run: . "$HOME/.cargo/env"; cargo build --target=aarch64-unknown-linux-musl --release
-      - run: cargo test --release
+      - run: . "$HOME/.cargo/env"; cargo test --release
       - run: strip ./target/aarch64-unknown-linux-musl/release/openbas-implant
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
@@ -219,6 +222,7 @@ jobs:
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - run: . "$HOME/.cargo/env"; rustup target add aarch64-unknown-linux-musl
       - run: . "$HOME/.cargo/env"; cargo build --target=aarch64-unknown-linux-musl --release
+      - run: . "$HOME/.cargo/env"; cargo test --release
       - run: strip ./target/aarch64-unknown-linux-musl/release/openbas-implant
       - run:
           name: push to jfrog
@@ -251,7 +255,7 @@ jobs:
       - run: cargo fmt -- --check
       - run: cargo audit
       - run: . "$HOME/.cargo/env"; cargo build --release
-      - run: cargo test --release
+      - run: . "$HOME/.cargo/env"; cargo test --release
       - run: strip ./target/release/openbas-implant
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
@@ -269,6 +273,7 @@ jobs:
             - cargo-{{ arch }}
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - run: . "$HOME/.cargo/env"; cargo build --release
+      - run: . "$HOME/.cargo/env"; cargo test --release
       - run: strip ./target/release/openbas-implant
       - run:
           name: push to jfrog
@@ -300,7 +305,7 @@ jobs:
       - run: cargo fmt -- --check
       - run: cargo audit
       - run: . "$HOME/.cargo/env"; cargo build --release
-      - run: cargo test --release
+      - run: . "$HOME/.cargo/env"; cargo test --release
       - run: strip ./target/release/openbas-implant
       - save_cache:
           key: cargo-{{ arch }}-{{ checksum "Cargo.toml" }}
@@ -317,6 +322,7 @@ jobs:
             - cargo-{{ arch }}
       - run: curl https://sh.rustup.rs -sSf | sh -s -- -y
       - run: . "$HOME/.cargo/env"; cargo build --release
+      - run: . "$HOME/.cargo/env"; cargo test --release
       - run: strip ./target/release/openbas-implant
       - run:
           name: push to jfrog
