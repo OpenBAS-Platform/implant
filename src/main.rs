@@ -54,7 +54,7 @@ pub fn handle_payload(
     contract_payload: &InjectorContractPayload,
 ) {
     let mut prerequisites_code = 0;
-    let mut execution_message= "Payload complete";
+    let mut execution_message = "Payload complete";
     let mut execution_status = "INFO";
     // region prerequisite execution
     let prerequisites_data = &contract_payload.payload_prerequisites;
@@ -123,8 +123,8 @@ pub fn handle_payload(
             }
         }
     } else {
-        execution_message="Payload execution not executed due to dependencies failure.";
-        execution_status="ERROR";
+        execution_message = "Payload execution not executed due to dependencies failure.";
+        execution_status = "ERROR";
     }
     // endregion
     // region cleanup execution

@@ -43,7 +43,7 @@ pub fn handle_dns_resolution(
                     execution_message: serde_json::to_string(&message).unwrap(),
                     execution_status: String::from("SUCCESS"),
                     execution_duration: 0,
-                    execution_action: String::from("dns_resolution")
+                    execution_action: String::from("dns_resolution"),
                 }
             }
             Err(error) => {
@@ -58,7 +58,7 @@ pub fn handle_dns_resolution(
                     execution_message: serde_json::to_string(&message).unwrap(),
                     execution_status: String::from("ERROR"),
                     execution_duration: 0,
-                    execution_action: String::from("dns_resolution")
+                    execution_action: String::from("dns_resolution"),
                 }
             }
         };
