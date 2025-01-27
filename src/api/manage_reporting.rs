@@ -12,7 +12,6 @@ pub fn report_success(
     duration: u128,
 ) {
     let message = ExecutionOutput {
-        action: String::from(semantic),
         stderr: stderr.unwrap_or_default(),
         stdout,
         exit_code: -1,
@@ -25,6 +24,7 @@ pub fn report_success(
             execution_message,
             execution_status: String::from("SUCCESS"),
             execution_duration: duration,
+            execution_action: String::from(semantic),
         },
     );
 }
@@ -39,7 +39,6 @@ pub fn report_error(
     duration: u128,
 ) {
     let message = ExecutionOutput {
-        action: String::from(semantic),
         stdout: stdout.unwrap_or_default(),
         stderr,
         exit_code: -1,
@@ -52,6 +51,7 @@ pub fn report_error(
             execution_message,
             execution_status: String::from("ERROR"),
             execution_duration: duration,
+            execution_action: String::from(semantic),
         },
     );
 }

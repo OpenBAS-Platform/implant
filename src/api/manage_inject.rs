@@ -64,6 +64,7 @@ pub struct UpdateInjectResponse {
 pub struct UpdateInput {
     pub execution_message: String,
     pub execution_status: String,
+    pub execution_action: String,
     pub execution_duration: u128,
 }
 

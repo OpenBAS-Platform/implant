@@ -54,6 +54,8 @@ pub fn handle_payload(
     contract_payload: &InjectorContractPayload,
 ) {
     let mut prerequisites_code = 0;
+    let mut execution_message = "Payload complete";
+    let mut execution_status = "INFO";
     // region prerequisite execution
     let prerequisites_data = &contract_payload.payload_prerequisites;
     let empty_prerequisites = vec![];
@@ -67,7 +69,7 @@ pub fn handle_payload(
         if check_cmd.is_some() && !check_cmd.clone().unwrap().is_empty() {
             let check_prerequisites = compute_command(check_cmd.as_ref().unwrap());
             check_status = handle_execution_command(
-                "prerequisite check",
+                "prerequisite_check",
                 api,
                 inject_id.clone(),
                 agent_id.clone(),
@@ -80,7 +82,7 @@ pub fn handle_payload(
         if check_status != 0 {
             let install_prerequisites = compute_command(&prerequisite.get_command);
             prerequisites_code += handle_execution_command(
-                "prerequisite execution",
+                "prerequisite_execution",
                 api,
                 inject_id.clone(),
                 agent_id.clone(),
@@ -115,22 +117,14 @@ pub fn handle_payload(
                         execution_message: String::from("Payload execution type not supported."),
                         execution_status: String::from("ERROR"),
                         execution_duration: 0,
+                        execution_action: String::from("complete"),
                     },
                 );
             }
         }
     } else {
-        let _ = api.update_status(
-            inject_id.clone(),
-            agent_id.clone(),
-            UpdateInput {
-                execution_message: String::from(
-                    "Payload execution not executed due to dependencies failure.",
-                ),
-                execution_status: String::from("ERROR"),
-                execution_duration: 0,
-            },
-        );
+        execution_message = "Payload execution not executed due to dependencies failure.";
+        execution_status = "ERROR";
     }
     // endregion
     // region cleanup execution
@@ -140,7 +134,7 @@ pub fn handle_payload(
         let executable_cleanup = compute_command(&cleanup.unwrap());
         let executor = contract_payload.payload_cleanup_executor.clone().unwrap();
         let _ = handle_execution_command(
-            "cleanup execution",
+            "cleanup_execution",
             api,
             inject_id.clone(),
             agent_id.clone(),
@@ -150,6 +144,16 @@ pub fn handle_payload(
         );
     }
     // endregion
+    let _ = api.update_status(
+        inject_id.clone(),
+        agent_id.clone(),
+        UpdateInput {
+            execution_message: String::from(execution_message),
+            execution_status: String::from(execution_status),
+            execution_duration: 0,
+            execution_action: String::from("complete"),
+        },
+    );
 }
 
 fn main() -> Result<(), Error> {

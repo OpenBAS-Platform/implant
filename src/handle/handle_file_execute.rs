@@ -21,7 +21,7 @@ pub fn handle_file_execute(
     match handle_file {
         Ok(filename) => {
             handle_execution_file(
-                "file execution",
+                "file_execution",
                 api,
                 inject_id.clone(),
                 agent_id.clone(),

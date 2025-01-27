@@ -22,7 +22,6 @@ pub fn handle_execution_result(
             let stderr = res.stderr;
             let exit_code = res.exit_code;
             let message = ExecutionOutput {
-                action: String::from(semantic),
                 stdout,
                 stderr,
                 exit_code,
@@ -35,6 +34,7 @@ pub fn handle_execution_result(
                     execution_message,
                     execution_status: res.status,
                     execution_duration: elapsed,
+                    execution_action: String::from(semantic),
                 },
             );
             // Return execution code
@@ -45,7 +45,6 @@ pub fn handle_execution_result(
             let stderr = format!("{:?}", err);
             let stdout = String::new();
             let message = ExecutionOutput {
-                action: String::from(semantic),
                 stderr,
                 stdout,
                 exit_code: -1,
@@ -58,6 +57,7 @@ pub fn handle_execution_result(
                     execution_message,
                     execution_status: String::from("ERROR"),
                     execution_duration: elapsed,
+                    execution_action: String::from(semantic),
                 },
             );
             // Return error code
