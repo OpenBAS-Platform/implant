@@ -54,7 +54,7 @@ pub fn handle_payload(
     contract_payload: &InjectorContractPayload,
 ) {
     let mut prerequisites_code = 0;
-    let mut execution_message = "Payload complete";
+    let mut execution_message = "Payload completed";
     let mut execution_status = "INFO";
     // region prerequisite execution
     let prerequisites_data = &contract_payload.payload_prerequisites;
