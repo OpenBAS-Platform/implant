@@ -35,7 +35,7 @@ pub struct PayloadPrerequisite {
 
 #[derive(Debug, Deserialize)]
 pub struct InjectorContractPayload {
-    pub payload_id: String,
+    pub payload_id: Option<String>,
     pub payload_type: String,
     pub payload_arguments: Option<Vec<PayloadArg>>,
     // FileDrop
@@ -71,10 +71,11 @@ pub struct UpdateInput {
 impl Client {
     pub fn get_executable_payload(
         &self,
-        inject_id: String,
+        inject_id: &str,
+        agent_id: &str,
     ) -> Result<InjectorContractPayload, Error> {
         match self
-            .get(&format!("/api/injects/{}/executable-payload", inject_id))
+            .get(&format!("/api/injects/{}/{}/executable-payload", inject_id, agent_id))
             .call()
         {
             Ok(response) => Ok(response.into_json()?),
