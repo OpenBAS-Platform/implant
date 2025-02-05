@@ -75,7 +75,10 @@ impl Client {
         agent_id: &str,
     ) -> Result<InjectorContractPayload, Error> {
         match self
-            .get(&format!("/api/injects/{}/{}/executable-payload", inject_id, agent_id))
+            .get(&format!(
+                "/api/injects/{}/{}/executable-payload",
+                inject_id, agent_id
+            ))
             .call()
         {
             Ok(response) => Ok(response.into_json()?),
