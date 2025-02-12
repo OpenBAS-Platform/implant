@@ -3,7 +3,7 @@ import logging
 import os
 
 import requests
-from OBAS_utils.release_utils import closeRelease
+from OBAS_utils.release_utils import closeRelease, check_release
 
 logging.basicConfig(encoding="utf-8", level=logging.INFO)
 
@@ -57,6 +57,31 @@ os.system(
 
 logging.info("[implant] Tagging")
 os.system("git tag -f " + new_version + " && git push -f --tags > /dev/null 2>&1")
+
+check_release(
+    "https://filigran.jfrog.io/ui/native/openbas-implant/linux/x86_64/",
+    "openbas-implant-" + new_version,
+)
+check_release(
+    "https://filigran.jfrog.io/ui/native/openbas-implant/linux/arm64/",
+    "openbas-implant-" + new_version,
+)
+check_release(
+    "https://filigran.jfrog.io/ui/native/openbas-implant/macos/x86_64/",
+    "openbas-implant-" + new_version,
+)
+check_release(
+    "https://filigran.jfrog.io/ui/native/openbas-implant/macos/arm64/",
+    "openbas-implant-" + new_version,
+)
+check_release(
+    "https://filigran.jfrog.io/ui/native/openbas-implant/windows/x86_64/",
+    "openbas-implant-" + new_version,
+)
+check_release(
+    "https://filigran.jfrog.io/ui/native/openbas-implant/windows/arm64/",
+    "openbas-implant-" + new_version,
+)
 
 logging.info("[implant] Generating release")
 os.system("gren release > /dev/null 2>&1")
