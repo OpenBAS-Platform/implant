@@ -1,4 +1,6 @@
-use std::process::{Command, Output, Stdio};
+use std::io::ErrorKind;
+use std::os::windows::process::ExitStatusExt;
+use std::process::{Command, ExitStatus, Output, Stdio};
 
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::Deserialize;
@@ -19,13 +21,23 @@ pub fn invoke_command(
     cmd_expression: &str,
     args: &[&str],
 ) -> std::io::Result<Output> {
-    Command::new(executor)
+    let result = Command::new(executor)
         .args(args)
         .arg(cmd_expression)
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?
-        .wait_with_output()
+        .output();
+
+    match result {
+        Ok(output) => Ok(output),
+        Err(e) if e.kind() == ErrorKind::PermissionDenied => {
+            Ok(Output {
+                status: ExitStatus::from_raw(1),
+                stdout: Vec::new(),
+                stderr: format!("{}", e).into_bytes(),
+            })
+        }
+        Err(e) => Err(e)
+    }
 }
 
 pub fn decode_command(encoded_command: &str) -> String {
