@@ -46,7 +46,7 @@ pub fn invoke_command(
                 stderr: format!("{}", e).into_bytes(),
             })
         }
-        Err(e) => Err(e)
+        Err(e) => Err(e),
     }
 }
 
