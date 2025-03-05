@@ -1,5 +1,4 @@
 use std::io::ErrorKind;
-use std::os::windows::process::ExitStatusExt;
 use std::process::{Command, ExitStatus, Output, Stdio};
 
 use base64::{engine::general_purpose::STANDARD, Engine as _};
@@ -7,6 +6,11 @@ use serde::Deserialize;
 
 use crate::common::error_model::Error;
 use crate::process::exec_utils::is_executor_present;
+
+#[cfg(unix)]
+use std::os::unix::process::ExitStatusExt;
+#[cfg(windows)]
+use std::os::windows::process::ExitStatusExt;
 
 #[derive(Debug, Deserialize)]
 pub struct ExecutionResult {
@@ -30,8 +34,14 @@ pub fn invoke_command(
     match result {
         Ok(output) => Ok(output),
         Err(e) if e.kind() == ErrorKind::PermissionDenied => {
+            let exit_status = if cfg!(unix) {
+                ExitStatus::from_raw(256)
+            } else {
+                ExitStatus::from_raw(1)
+            };
+
             Ok(Output {
-                status: ExitStatus::from_raw(1),
+                status: exit_status,
                 stdout: Vec::new(),
                 stderr: format!("{}", e).into_bytes(),
             })
