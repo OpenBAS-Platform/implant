@@ -1,10 +1,16 @@
-use std::process::{Command, Output, Stdio};
+use std::io::ErrorKind;
+use std::process::{Command, ExitStatus, Output, Stdio};
 
 use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::Deserialize;
 
 use crate::common::error_model::Error;
 use crate::process::exec_utils::is_executor_present;
+
+#[cfg(unix)]
+use std::os::unix::process::ExitStatusExt;
+#[cfg(windows)]
+use std::os::windows::process::ExitStatusExt;
 
 #[derive(Debug, Deserialize)]
 pub struct ExecutionResult {
@@ -19,13 +25,29 @@ pub fn invoke_command(
     cmd_expression: &str,
     args: &[&str],
 ) -> std::io::Result<Output> {
-    Command::new(executor)
+    let result = Command::new(executor)
         .args(args)
         .arg(cmd_expression)
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?
-        .wait_with_output()
+        .output();
+
+    match result {
+        Ok(output) => Ok(output),
+        Err(e) if e.kind() == ErrorKind::PermissionDenied => {
+            let exit_status = if cfg!(unix) {
+                ExitStatus::from_raw(256)
+            } else {
+                ExitStatus::from_raw(1)
+            };
+
+            Ok(Output {
+                status: exit_status,
+                stdout: Vec::new(),
+                stderr: format!("{}", e).into_bytes(),
+            })
+        }
+        Err(e) => Err(e),
+    }
 }
 
 pub fn decode_command(encoded_command: &str) -> String {
