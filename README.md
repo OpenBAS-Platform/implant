@@ -1,4 +1,4 @@
-# OpenBAS implant
+# OpenBAS Implant
 
 [![Website](https://img.shields.io/badge/website-openbas.io-blue.svg)](https://openbas.io)
 [![CircleCI](https://circleci.com/gh/OpenBAS-Platform/implant.svg?style=shield)](https://circleci.com/gh/OpenBAS-Platform/implant/tree/master)
@@ -7,12 +7,137 @@
 
 The following repository is used to store the OpenBAS implant for the platform. For performance and low level access, the agent is written in Rust. Please start your journey with https://doc.rust-lang.org/book.
 
-## Installation
+---
 
-There is no direct installation. The implant will be executed by an neutral agent within OpenBAS (OpenBAS Agent, Tanium, Caldera, etc.).
+## 🚀 Installation
 
-## About
+There is **no direct installation** required for the implant.
 
-OpenCTI is a product designed and developed by the company [Filigran](https://filigran.io).
+Instead, it is executed by a neutral orchestrator such as:
+
+- **OpenBAS Agent**
+- **Tanium**
+- **Caldera**
+- Or any other compatible execution engine
+
+Execution is fully managed by the orchestrator via OpenBAS scenarios.
+
+---
+
+## 🛠 Development
+
+This project is written in [Rust](https://rust-lang.org/). If you're new to Rust, we recommend starting
+with [The Rust Book](https://doc.rust-lang.org/book).
+
+### Prerequisites
+
+- [Rust](https://rustup.rs/)
+- [Cargo](https://doc.rust-lang.org/cargo/)
+- Linux, macOS, or Windows
+
+### Build
+
+To build the implant locally:
+
+```bash
+cargo build
+```
+
+---
+
+## ✅ Running Tests
+
+Run all tests:
+
+```bash
+cargo test
+```
+
+Run a specific test:
+
+```bash
+cargo test test_name
+```
+
+---
+
+## 📊 Code Coverage
+
+You can generate coverage reports using [`cargo-llvm-cov`](https://github.com/taiki-e/cargo-llvm-cov):
+
+```bash
+cargo install cargo-llvm-cov
+cargo llvm-cov --html
+```
+
+---
+
+## 🧹 Code Quality
+
+### 🧠 Clippy – Linting
+
+```bash
+cargo clippy -- -D warnings
+```
+
+Auto-fix warnings:
+
+```bash
+cargo fix --clippy
+```
+
+Clippy runs in CI and must pass.
+
+---
+
+### 🎨 Rustfmt – Formatting
+
+Check formatting:
+
+```bash
+cargo fmt -- --check
+```
+
+Auto-format:
+
+```bash
+cargo fmt
+```
+
+Rustfmt also runs in CI.
+
+---
+
+### 🔒 Cargo Audit – Vulnerabilities
+
+Check for known issues in dependencies:
+
+```bash
+cargo audit
+```
+
+Fix with:
+
+```bash
+cargo update
+```
+
+---
+
+## 🐞 Troubleshooting in Development Mode
+
+When running the implant locally (e.g., using `cargo run`), logs are written to:
+
+```
+target/debug/openbas-implant.log
+```
+
+Check this file to investigate errors or debug behavior during development.
+
+---
+
+## 🧬 About
+
+OpenBAS is developed by [Filigran](https://filigran.io), a company building open-source security tooling.
 
 <a href="https://filigran.io" alt="Filigran"><img src="https://github.com/OpenCTI-Platform/opencti/raw/master/.github/img/logo_filigran.png" width="300" /></a>
