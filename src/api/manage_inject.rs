@@ -18,9 +18,9 @@ where
     let mut writer = BufWriter::new(writer);
     let content = response
         .error_for_status()
-        .map_err(|e| io::Error::other(e))?
+        .map_err(io::Error::other)?
         .bytes()
-        .map_err(|e| io::Error::other(e))?
+        .map_err(io::Error::other)?
         .as_ref()
         .to_owned();
     io::copy(&mut content.as_slice(), &mut writer)
