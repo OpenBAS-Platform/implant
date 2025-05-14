@@ -1,9 +1,9 @@
-const TOKEN: &str = "token";
+pub const TOKEN_TEST: &str = "token";
 
 #[cfg(test)]
 mod tests {
     use crate::api::{Client, AUTHORIZATION_HEADER};
-    use crate::tests::api::client::{TOKEN};
+    use crate::tests::api::client::TOKEN_TEST;
     use mockito;
     use std::env;
 
@@ -18,10 +18,13 @@ mod tests {
                 "user-agent",
                 format!("openbas-implant/{}", crate::api::VERSION).as_str(),
             )
-            .match_header(AUTHORIZATION_HEADER, format!("Bearer {}", TOKEN).as_str())
+            .match_header(
+                AUTHORIZATION_HEADER,
+                format!("Bearer {}", TOKEN_TEST).as_str(),
+            )
             .with_status(200)
             .create();
-        let client = Client::new(server_url, TOKEN.to_string(), false, false);
+        let client = Client::new(server_url, TOKEN_TEST.to_string(), false, false);
 
         // -- EXECUTE & ASSERT --
         let res = client.post("/api/test").send();
@@ -36,8 +39,10 @@ mod tests {
         let mut server = mockito::Server::new();
         let server_url = server.url();
         server.mock("POST", "/api/test").with_status(200).create();
-        let client_without_proxy = Client::new(server_url.clone(), TOKEN.to_string(), false, false);
-        let client_with_proxy = Client::new(server_url.clone(), TOKEN.to_string(), false, true);
+        let client_without_proxy =
+            Client::new(server_url.clone(), TOKEN_TEST.to_string(), false, false);
+        let client_with_proxy =
+            Client::new(server_url.clone(), TOKEN_TEST.to_string(), false, true);
 
         // -- EXECUTE --
         let res_without_proxy = client_without_proxy.post("/api/test").send();
@@ -59,10 +64,14 @@ mod tests {
         // -- PREPARE --
         let bad_ssl_url = "https://self-signed.badssl.com/";
 
-        let client_without_unsecured_certificate =
-            Client::new(bad_ssl_url.to_string(), TOKEN.to_string(), false, false);
+        let client_without_unsecured_certificate = Client::new(
+            bad_ssl_url.to_string(),
+            TOKEN_TEST.to_string(),
+            false,
+            false,
+        );
         let client_with_unsecured_certificate =
-            Client::new(bad_ssl_url.to_string(), TOKEN.to_string(), true, true);
+            Client::new(bad_ssl_url.to_string(), TOKEN_TEST.to_string(), true, true);
 
         // -- EXECUTE --
         let res_without_unsecured_certificate = client_without_unsecured_certificate.get("").send();

@@ -1,20 +1,29 @@
+use crate::common::error_model::Error;
+use mailparse::{parse_content_disposition, parse_header};
+use reqwest::blocking::Response;
+use reqwest::header::CONTENT_DISPOSITION;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::fs::File;
 use std::io::{BufWriter, Write};
-use std::{env, fs};
-
-use mailparse::{parse_content_disposition, parse_header};
-use serde::{Deserialize, Serialize};
-
-use crate::common::error_model::Error;
+use std::path::PathBuf;
+use std::{env, fs, io};
 
 use super::Client;
 
-pub fn write_response<W>(writer: W, response: ureq::Response) -> std::io::Result<u64>
+pub fn write_response<W>(writer: W, response: reqwest::blocking::Response) -> std::io::Result<u64>
 where
     W: Write,
 {
     let mut writer = BufWriter::new(writer);
-    std::io::copy(&mut response.into_reader(), &mut writer)
+    let content = response
+        .error_for_status()
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?
+        .bytes()
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?
+        .as_ref()
+        .to_owned();
+    io::copy(&mut content.as_slice(), &mut writer)
 }
 
 #[derive(Debug, Deserialize)]
@@ -79,11 +88,19 @@ impl Client {
                 "/api/injects/{}/{}/executable-payload",
                 inject_id, agent_id
             ))
-            .call()
+            .send()
         {
-            Ok(response) => Ok(response.into_json()?),
-            Err(ureq::Error::Status(_, response)) => {
-                Err(Error::Api(response.into_string().unwrap()))
+            Ok(response) => {
+                if response.status().is_success() {
+                    response
+                        .json::<InjectorContractPayload>()
+                        .map_err(|e| Error::Internal(e.to_string()))
+                } else {
+                    let msg = response
+                        .text()
+                        .unwrap_or_else(|_| "Unknown error".to_string());
+                    Err(Error::Api(msg))
+                }
             }
             Err(err) => Err(Error::Internal(err.to_string())),
         }
@@ -95,17 +112,26 @@ impl Client {
         agent_id: String,
         input: UpdateInput,
     ) -> Result<UpdateInjectResponse, Error> {
-        let post_data = ureq::json!(input);
+        let post_data = json!(input);
         match self
             .post(&format!(
                 "/api/injects/execution/{}/callback/{}",
                 agent_id, inject_id
             ))
-            .send_json(post_data)
+            .json(&post_data)
+            .send()
         {
-            Ok(response) => Ok(response.into_json()?),
-            Err(ureq::Error::Status(_, response)) => {
-                Err(Error::Api(response.into_string().unwrap()))
+            Ok(response) => {
+                if response.status().is_success() {
+                    response
+                        .json::<UpdateInjectResponse>()
+                        .map_err(|e| Error::Internal(e.to_string()))
+                } else {
+                    let msg = response
+                        .text()
+                        .unwrap_or_else(|_| "Unknown error".to_string());
+                    Err(Error::Api(msg))
+                }
             }
             Err(err) => Err(Error::Internal(err.to_string())),
         }
@@ -114,37 +140,63 @@ impl Client {
     pub fn download_file(&self, document_id: &String, in_memory: bool) -> Result<String, Error> {
         match self
             .get(&format!("/api/documents/{}/file", document_id))
-            .call()
+            .send()
         {
             Ok(response) => {
-                let content_disposition = response.header("content-disposition").unwrap_or("");
-                let content_to_parse = format!("Content-Disposition: {}", content_disposition);
-                let (parsed, _) = parse_header(content_to_parse.as_bytes()).unwrap();
-                let dis = parse_content_disposition(&parsed.get_value());
-                let current_exe_patch = env::current_exe().unwrap();
-                let executable_path = current_exe_patch.parent().unwrap();
-                let name = dis.params.get("filename").unwrap();
-                let file_directory = executable_path.join(name);
-                if in_memory {
-                    let buf = BufWriter::new(Vec::new());
-                    let _ = write_response(buf, response);
-                    Ok(String::from(name))
-                } else {
-                    let output_file = File::create(file_directory.clone()).unwrap();
-                    let file_write = write_response(output_file, response);
-                    match file_write {
-                        Ok(_) => Ok(String::from(name)),
-                        Err(err) => {
-                            let _ = fs::remove_file(file_directory.clone());
-                            Err(Error::Io(err))
+                if response.status().is_success() {
+                    let name = extract_filename(&response)?;
+                    let output_path = get_output_path(&name)?;
+
+                    if in_memory {
+                        let buf = BufWriter::new(Vec::new());
+                        let _ = write_response(buf, response);
+                        Ok(name)
+                    } else {
+                        let output_file = File::create(output_path.clone()).unwrap();
+                        let file_write = write_response(output_file, response);
+                        match file_write {
+                            Ok(_) => Ok(name),
+                            Err(err) => {
+                                let _ = fs::remove_file(output_path.clone());
+                                Err(Error::Io(err))
+                            }
                         }
                     }
+                } else {
+                    let msg = response
+                        .text()
+                        .unwrap_or_else(|_| "Unknown error".to_string());
+                    Err(Error::Api(msg))
                 }
-            }
-            Err(ureq::Error::Status(_, response)) => {
-                Err(Error::Api(response.into_string().unwrap()))
             }
             Err(err) => Err(Error::Internal(err.to_string())),
         }
     }
+}
+
+fn extract_filename(response: &Response) -> Result<String, Error> {
+    let content_disposition = response
+        .headers()
+        .get(CONTENT_DISPOSITION)
+        .and_then(|val| val.to_str().ok())
+        .unwrap_or("");
+
+    let content_to_parse = format!("Content-Disposition: {}", content_disposition);
+    let (parsed, _) = parse_header(content_to_parse.as_bytes())
+        .map_err(|_| Error::Internal("Failed to parse Content-Disposition".to_string()))?;
+    let dis = parse_content_disposition(&parsed.get_value());
+
+    dis.params
+        .get("filename")
+        .map(|s| s.to_string())
+        .ok_or_else(|| Error::Internal("Filename not found".to_string()))
+}
+
+fn get_output_path(filename: &str) -> Result<PathBuf, Error> {
+    let current_exe_path = env::current_exe()
+        .map_err(|e| Error::Internal(format!("Cannot get current executable path: {}", e)))?;
+    let parent_dir = current_exe_path.parent().ok_or_else(|| {
+        Error::Internal("Cannot determine executable parent directory".to_string())
+    })?;
+    Ok(parent_dir.join(filename))
 }
