@@ -73,8 +73,7 @@ pub fn file_execution(filename: &str) -> Result<ExecutionResult, Error> {
     let executor = "bash";
     if !is_executor_present(executor) {
         return Err(Error::Internal(format!(
-            "Executor '{}' is not available.",
-            executor
+            "Executor '{executor}' is not available."
         )));
     }
     let script_file_name = compute_working_file(filename);

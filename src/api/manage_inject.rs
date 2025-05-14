@@ -18,9 +18,9 @@ where
     let mut writer = BufWriter::new(writer);
     let content = response
         .error_for_status()
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?
+        .map_err(|e| io::Error::other(e))?
         .bytes()
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?
+        .map_err(|e| io::Error::other(e))?
         .as_ref()
         .to_owned();
     io::copy(&mut content.as_slice(), &mut writer)
@@ -85,8 +85,7 @@ impl Client {
     ) -> Result<InjectorContractPayload, Error> {
         match self
             .get(&format!(
-                "/api/injects/{}/{}/executable-payload",
-                inject_id, agent_id
+                "/api/injects/{inject_id}/{agent_id}/executable-payload"
             ))
             .send()
         {
@@ -115,8 +114,7 @@ impl Client {
         let post_data = json!(input);
         match self
             .post(&format!(
-                "/api/injects/execution/{}/callback/{}",
-                agent_id, inject_id
+                "/api/injects/execution/{agent_id}/callback/{inject_id}"
             ))
             .json(&post_data)
             .send()
@@ -139,7 +137,7 @@ impl Client {
 
     pub fn download_file(&self, document_id: &String, in_memory: bool) -> Result<String, Error> {
         match self
-            .get(&format!("/api/documents/{}/file", document_id))
+            .get(&format!("/api/documents/{document_id}/file"))
             .send()
         {
             Ok(response) => {
@@ -181,7 +179,7 @@ fn extract_filename(response: &Response) -> Result<String, Error> {
         .and_then(|val| val.to_str().ok())
         .unwrap_or("");
 
-    let content_to_parse = format!("Content-Disposition: {}", content_disposition);
+    let content_to_parse = format!("Content-Disposition: {content_disposition}");
     let (parsed, _) = parse_header(content_to_parse.as_bytes())
         .map_err(|_| Error::Internal("Failed to parse Content-Disposition".to_string()))?;
     let dis = parse_content_disposition(&parsed.get_value());
@@ -194,7 +192,7 @@ fn extract_filename(response: &Response) -> Result<String, Error> {
 
 fn get_output_path(filename: &str) -> Result<PathBuf, Error> {
     let current_exe_path = env::current_exe()
-        .map_err(|e| Error::Internal(format!("Cannot get current executable path: {}", e)))?;
+        .map_err(|e| Error::Internal(format!("Cannot get current executable path: {e}")))?;
     let parent_dir = current_exe_path.parent().ok_or_else(|| {
         Error::Internal("Cannot determine executable parent directory".to_string())
     })?;

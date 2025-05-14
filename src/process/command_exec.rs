@@ -43,7 +43,7 @@ pub fn invoke_command(
             Ok(Output {
                 status: exit_status,
                 stdout: Vec::new(),
-                stderr: format!("{}", e).into_bytes(),
+                stderr: format!("{e}").into_bytes(),
             })
         }
         Err(e) => Err(e),

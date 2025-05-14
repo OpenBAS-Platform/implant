@@ -41,8 +41,8 @@ pub fn handle_execution_result(
             res.exit_code
         }
         Err(err) => {
-            info!("implant execution error: {:?}", err);
-            let stderr = format!("{:?}", err);
+            info!("implant execution error: {err:?}");
+            let stderr = format!("{err:?}");
             let stdout = String::new();
             let message = ExecutionOutput {
                 stderr,
