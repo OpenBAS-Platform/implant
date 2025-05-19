@@ -16,7 +16,7 @@ pub fn handle_execution_file(
     filename: &String,
 ) -> i32 {
     let now = Instant::now();
-    info!("{} execution: {:?}", semantic, filename);
+    info!("{semantic} execution: {filename:?}");
     let command_result = file_execution(filename.as_str());
     let elapsed = now.elapsed().as_millis();
     handle_execution_result(semantic, api, inject_id, agent_id, command_result, elapsed)
@@ -62,7 +62,7 @@ pub fn handle_file(
                     Ok(filename)
                 }
                 Err(err) => {
-                    let stderr = format!("{:?}", err);
+                    let stderr = format!("{err:?}");
                     report_error(
                         api,
                         "file_drop",
