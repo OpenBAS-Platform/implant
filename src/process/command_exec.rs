@@ -26,11 +26,6 @@ pub fn invoke_command(
     cmd_expression: &str,
     args: &[&str],
 ) -> std::io::Result<Output> {
-    let result = Command::new(executor)
-        .args(args)
-        .arg(cmd_expression)
-        .stdout(Stdio::piped())
-        .output();
 
     let mut command = Command::new(executor);
 
