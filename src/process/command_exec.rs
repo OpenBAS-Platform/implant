@@ -9,6 +9,7 @@ use crate::process::exec_utils::is_executor_present;
 
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
+use std::os::windows::process::CommandExt;
 #[cfg(windows)]
 use std::os::windows::process::ExitStatusExt;
 
@@ -30,6 +31,19 @@ pub fn invoke_command(
         .arg(cmd_expression)
         .stdout(Stdio::piped())
         .output();
+
+    let mut command = Command::new(executor);
+
+    // For CMD we use "raw_args" to fix issue #3161; for other executors, we still use "args" as they are working properly.
+    if executor == "cmd" {
+        command.args(args).raw_arg(cmd_expression);
+    } else {
+        command.args(args).arg(cmd_expression);
+    }
+
+    // Execute the command
+    let result = command.stdout(Stdio::piped()).output();
+
 
     match result {
         Ok(output) => Ok(output),
