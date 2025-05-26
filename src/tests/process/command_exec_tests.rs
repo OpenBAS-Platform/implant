@@ -43,6 +43,7 @@ fn test_invoke_command_powershell_special_character() {
 }
 
 #[test]
+#[cfg(windows)]
 fn test_invoke_command_cmd_with_quote() {
     let command = r#"echo "Hello""#;
     let args: Vec<&str> = vec!["/V", "/C"];
