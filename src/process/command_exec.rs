@@ -9,9 +9,10 @@ use crate::process::exec_utils::is_executor_present;
 
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
-use std::os::windows::process::CommandExt;
 #[cfg(windows)]
 use std::os::windows::process::ExitStatusExt;
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 
 #[derive(Debug, Deserialize)]
 pub struct ExecutionResult {
