@@ -10,6 +10,8 @@ use crate::process::exec_utils::is_executor_present;
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
 #[cfg(windows)]
+use std::os::windows::process::CommandExt;
+#[cfg(windows)]
 use std::os::windows::process::ExitStatusExt;
 
 #[derive(Debug, Deserialize)]
@@ -25,11 +27,17 @@ pub fn invoke_command(
     cmd_expression: &str,
     args: &[&str],
 ) -> std::io::Result<Output> {
-    let result = Command::new(executor)
-        .args(args)
-        .arg(cmd_expression)
-        .stdout(Stdio::piped())
-        .output();
+    let mut command = Command::new(executor);
+
+    let result = match executor {
+        // For CMD we use "raw_args" to fix issue #3161;
+        #[cfg(windows)]
+        "cmd" => command.args(args).raw_arg(cmd_expression),
+        // for other executors, we still use "args" as they are working properly.
+        _ => command.args(args).arg(cmd_expression),
+    }
+    .stdout(Stdio::piped())
+    .output();
 
     match result {
         Ok(output) => Ok(output),
