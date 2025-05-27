@@ -130,18 +130,20 @@ pub fn handle_payload(
     // region cleanup execution
     // Cleanup command will be executed independently of the previous commands success.
     let cleanup = contract_payload.payload_cleanup_command.clone();
-    if cleanup.is_some() && !cleanup.clone().unwrap().is_empty() {
-        let executable_cleanup = compute_command(&cleanup.unwrap());
-        let executor = contract_payload.payload_cleanup_executor.clone().unwrap();
-        let _ = handle_execution_command(
-            "cleanup_execution",
-            api,
-            inject_id.clone(),
-            agent_id.clone(),
-            &executable_cleanup,
-            &executor,
-            false,
-        );
+    if let Some(ref cleanup_value) = cleanup {
+        if !cleanup_value.is_empty() {
+            let executable_cleanup = compute_command(cleanup_value);
+            let executor = contract_payload.payload_cleanup_executor.clone().unwrap();
+            let _ = handle_execution_command(
+                "cleanup_execution",
+                api,
+                inject_id.clone(),
+                agent_id.clone(),
+                &executable_cleanup,
+                &executor,
+                false,
+            );
+        }
     }
     // endregion
     let _ = api.update_status(
