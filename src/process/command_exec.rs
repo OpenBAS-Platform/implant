@@ -10,8 +10,6 @@ use crate::process::exec_utils::is_executor_present;
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
 #[cfg(windows)]
-use std::os::windows::process::CommandExt;
-#[cfg(windows)]
 use std::os::windows::process::ExitStatusExt;
 
 #[derive(Debug, Deserialize)]
@@ -27,17 +25,11 @@ pub fn invoke_command(
     cmd_expression: &str,
     args: &[&str],
 ) -> std::io::Result<Output> {
-    let mut command = Command::new(executor);
-
-    let result = match executor {
-        // For CMD we use "raw_args" to fix issue #3161;
-        #[cfg(windows)]
-        "cmd" => command.args(args).raw_arg(cmd_expression),
-        // for other executors, we still use "args" as they are working properly.
-        _ => command.args(args).arg(cmd_expression),
-    }
-    .stdout(Stdio::piped())
-    .output();
+    let result = Command::new(executor)
+        .args(args)
+        .arg(cmd_expression)
+        .stdout(Stdio::piped())
+        .output();
 
     match result {
         Ok(output) => Ok(output),
@@ -51,7 +43,7 @@ pub fn invoke_command(
             Ok(Output {
                 status: exit_status,
                 stdout: Vec::new(),
-                stderr: format!("{e}").into_bytes(),
+                stderr: format!("{}", e).into_bytes(),
             })
         }
         Err(e) => Err(e),
@@ -67,12 +59,13 @@ pub fn decode_command(encoded_command: &str) -> String {
 
 pub fn format_powershell_command(command: String) -> String {
     format!(
-        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;$ErrorActionPreference = 'Stop'; {command} ; exit $LASTEXITCODE"
+        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;$ErrorActionPreference = 'Stop'; {} ; exit $LASTEXITCODE",
+        command
     )
 }
 
 pub fn format_windows_command(command: String) -> String {
-    format!("setlocal & {command} & exit /b errorlevel")
+    format!("setlocal & {} & exit /b errorlevel", command)
 }
 
 pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<ExecutionResult, Error> {
@@ -161,7 +154,8 @@ pub fn command_execution(
 
     if !is_executor_present(final_executor) {
         return Err(Error::Internal(format!(
-            "Executor {final_executor} is not available."
+            "Executor {} is not available.",
+            final_executor
         )));
     }
 

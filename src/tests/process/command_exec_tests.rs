@@ -42,18 +42,3 @@ fn test_invoke_command_powershell_special_character() {
     let stdout = decode_output(&invoke_output.stdout);
     assert_eq!(stdout, "Helloé\r\n");
 }
-
-#[test]
-#[cfg(windows)]
-fn test_invoke_command_cmd_with_quote() {
-    let command = r#"echo "Hello""#;
-    let args: Vec<&str> = vec!["/V", "/C"];
-
-    let invoke_output = match invoke_command("cmd", &command, args.as_slice()) {
-        Ok(output) => output,
-        Err(e) => panic!("Failed to invoke CMD command: {}", e),
-    };
-
-    let stdout = decode_output(&invoke_output.stdout);
-    assert_eq!(stdout, "\"Hello\"\r\n"); //assert that raw_args was used otherwise " should have been escaped twice
-}
