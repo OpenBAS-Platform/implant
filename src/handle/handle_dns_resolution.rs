@@ -18,7 +18,7 @@ pub fn handle_dns_resolution(
     for hostname in hostnames {
         // to_socket_addrs required a port to check. By default, using http 80.
         info!("dns resolution execution: {:?}", format!("{}:80", hostname));
-        let addrs_command = format!("{}:80", hostname).to_socket_addrs();
+        let addrs_command = format!("{hostname}:80").to_socket_addrs();
         let input = match addrs_command {
             Ok(addrs) => {
                 let stdout = format!(

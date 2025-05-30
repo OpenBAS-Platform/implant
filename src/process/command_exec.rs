@@ -43,7 +43,7 @@ pub fn invoke_command(
             Ok(Output {
                 status: exit_status,
                 stdout: Vec::new(),
-                stderr: format!("{}", e).into_bytes(),
+                stderr: format!("{e}").into_bytes(),
             })
         }
         Err(e) => Err(e),
@@ -59,13 +59,12 @@ pub fn decode_command(encoded_command: &str) -> String {
 
 pub fn format_powershell_command(command: String) -> String {
     format!(
-        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;$ErrorActionPreference = 'Stop'; {} ; exit $LASTEXITCODE",
-        command
+        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;$ErrorActionPreference = 'Stop'; {command} ; exit $LASTEXITCODE"
     )
 }
 
 pub fn format_windows_command(command: String) -> String {
-    format!("setlocal & {} & exit /b errorlevel", command)
+    format!("setlocal & {command} & exit /b errorlevel")
 }
 
 pub fn manage_result(invoke_output: Output, pre_check: bool) -> Result<ExecutionResult, Error> {
@@ -154,8 +153,7 @@ pub fn command_execution(
 
     if !is_executor_present(final_executor) {
         return Err(Error::Internal(format!(
-            "Executor {} is not available.",
-            final_executor
+            "Executor {final_executor} is not available."
         )));
     }
 

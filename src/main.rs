@@ -143,6 +143,7 @@ pub fn handle_payload(
             false,
         );
     }
+    
     // endregion
     let _ = api.update_status(
         inject_id.clone(),
@@ -180,7 +181,7 @@ fn main() -> Result<(), Error> {
         args.with_proxy == "true",
     );
     let payload = api.get_executable_payload(args.inject_id.as_str(), args.agent_id.as_str());
-    let contract_payload = payload.unwrap_or_else(|err| panic!("Fail getting payload {}", err));
+    let contract_payload = payload.unwrap_or_else(|err| panic!("Fail getting payload {err}"));
     handle_payload(
         args.inject_id.clone(),
         args.agent_id.clone(),
