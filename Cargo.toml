@@ -19,7 +19,7 @@ clap = { version = "4.5.7", features = ["derive"] }
 regex = "1.10.5"
 mailparse = "0.16.0"
 rustls = { version ="0.23.13", features = ["ring"], default-features = false }
-rustls-platform-verifier = "0.5.0"
+rustls-platform-verifier = "0.6.0"
 
 [dev-dependencies]
 mockito = "1.7.0"
