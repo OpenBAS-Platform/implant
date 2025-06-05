@@ -29,7 +29,8 @@ const PREFIX_LOG_NAME: &str = "openbas-implant.log";
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    #[arg(short, long)]
+    // short: d for destination
+    #[arg(short = 'd', long)]
     uri: String,
     #[arg(short, long)]
     token: String,
