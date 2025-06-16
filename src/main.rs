@@ -145,6 +145,7 @@ pub fn handle_payload(
             );
         }
     }
+    
     // endregion
     let _ = api.update_status(
         inject_id.clone(),
