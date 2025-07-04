@@ -149,16 +149,14 @@ impl Client {
             response
                 .json::<UpdateInjectResponse>()
                 .map_err(|e| Error::Internal(e.to_string()))
+        } else if response.status().is_client_error() && retry > 0 {
+            sleep(Duration::from_secs(1));
+            self.update_status_retry(inject_id, agent_id, input, retry - 1)
         } else {
-            if response.status().is_client_error() && retry > 0 {
-                sleep(Duration::from_secs(1));
-                self.update_status_retry(inject_id, agent_id, input, retry - 1)
-            } else {
-                let msg = response
-                    .text()
-                    .unwrap_or_else(|_| "Unknown error".to_string());
-                Err(Error::Api(msg))
-            }
+            let msg = response
+                .text()
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            Err(Error::Api(msg))
         }
     }
 
