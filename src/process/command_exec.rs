@@ -5,6 +5,7 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::Deserialize;
 
 use crate::common::error_model::Error;
+use crate::handle::handle_command::compute_command;
 use crate::process::exec_utils::is_executor_present;
 
 #[cfg(unix)]
@@ -13,7 +14,6 @@ use std::os::unix::process::ExitStatusExt;
 use std::os::windows::process::CommandExt;
 #[cfg(windows)]
 use std::os::windows::process::ExitStatusExt;
-use crate::handle::handle_command::compute_command;
 
 #[derive(Debug, Deserialize)]
 pub struct ExecutionResult {
