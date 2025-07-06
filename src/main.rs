@@ -34,7 +34,7 @@ struct Args {
     uri: String,
     #[arg(short, long)]
     token: String,
-    #[arg(short, long)]
+    #[arg(short = 's', long)]
     unsecured_certificate: String,
     #[arg(short, long)]
     with_proxy: String,
