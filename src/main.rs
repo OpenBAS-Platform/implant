@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{arg, Parser};
 use log::info;
 use rolling_file::{BasicRollingFileAppender, RollingConditionBasic};
 use std::env;
@@ -58,6 +58,25 @@ pub fn handle_payload(
     let mut prerequisites_code = 0;
     let mut execution_message = "Payload completed";
     let mut execution_status = "INFO";
+    // region download files parameters
+    if let Some(slice_arguments) = contract_payload.payload_arguments.as_deref() {
+        // println!("Slice reference exists. Length: {}", slice_arguments.len());
+        for argument in slice_arguments {
+            // println!("Arg ID: {}", argument.key);
+            if argument.r#type == "document" {
+                // Download the file
+                match &argument.default_value {
+                    None => {
+                        // Nothing to do but strange.
+                    }
+                    Some(uri) => {
+                        let _ = api.download_file(&uri, false);
+                    }
+                }
+            }
+        }
+    }
+    // endregion
     // region prerequisite execution
     let prerequisites_data = &contract_payload.payload_prerequisites;
     let empty_prerequisites = vec![];
