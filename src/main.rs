@@ -70,7 +70,7 @@ pub fn handle_payload(
                         // Nothing to do but strange.
                     }
                     Some(uri) => {
-                        let _ = api.download_file(&uri, false);
+                        let _ = api.download_file(uri, false);
                     }
                 }
             }
