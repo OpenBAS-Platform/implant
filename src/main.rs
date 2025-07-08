@@ -1,9 +1,9 @@
-use std::env;
-use std::sync::atomic::AtomicBool;
-use std::time::{Instant};
 use clap::Parser;
 use log::info;
 use rolling_file::{BasicRollingFileAppender, RollingConditionBasic};
+use std::env;
+use std::sync::atomic::AtomicBool;
+use std::time::Instant;
 
 use crate::api::manage_inject::{InjectorContractPayload, UpdateInput};
 use crate::api::Client;

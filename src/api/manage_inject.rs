@@ -1,5 +1,6 @@
 use super::Client;
 use crate::common::error_model::Error;
+use log::info;
 use mailparse::{parse_content_disposition, parse_header};
 use reqwest::blocking::Response;
 use reqwest::header::CONTENT_DISPOSITION;
@@ -11,7 +12,6 @@ use std::path::PathBuf;
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, fs, io};
-use log::info;
 
 pub fn write_response<W>(writer: W, response: reqwest::blocking::Response) -> std::io::Result<u64>
 where
@@ -152,7 +152,7 @@ impl Client {
                 .map_err(|e| Error::Internal(e.to_string()))
         } else if response.status().is_client_error() && retry > 0 {
             sleep(Duration::from_secs(1));
-            info!("retry {:?} ", retry);
+            info!("retry {retry:?} ");
             self.update_status_retry(inject_id, agent_id, input, retry - 1)
         } else {
             let msg = response
