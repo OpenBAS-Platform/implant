@@ -1,9 +1,9 @@
-use std::env;
-use std::sync::atomic::AtomicBool;
-
 use clap::Parser;
 use log::info;
 use rolling_file::{BasicRollingFileAppender, RollingConditionBasic};
+use std::env;
+use std::sync::atomic::AtomicBool;
+use std::time::Instant;
 
 use crate::api::manage_inject::{InjectorContractPayload, UpdateInput};
 use crate::api::Client;
@@ -53,6 +53,7 @@ pub fn handle_payload(
     agent_id: String,
     api: &Client,
     contract_payload: &InjectorContractPayload,
+    duration: Instant,
 ) {
     let mut prerequisites_code = 0;
     let mut execution_message = "Payload completed";
@@ -117,7 +118,7 @@ pub fn handle_payload(
                     UpdateInput {
                         execution_message: String::from("Payload execution type not supported."),
                         execution_status: String::from("ERROR"),
-                        execution_duration: 0,
+                        execution_duration: duration.elapsed().as_millis(),
                         execution_action: String::from("complete"),
                     },
                 );
@@ -153,7 +154,7 @@ pub fn handle_payload(
         UpdateInput {
             execution_message: String::from(execution_message),
             execution_status: String::from(execution_status),
-            execution_duration: 0,
+            execution_duration: duration.elapsed().as_millis(),
             execution_action: String::from("complete"),
         },
     );
@@ -161,6 +162,7 @@ pub fn handle_payload(
 
 fn main() -> Result<(), Error> {
     // region Init logger
+    let duration = Instant::now();
     let current_exe_patch = env::current_exe().unwrap();
     let parent_path = current_exe_patch.parent().unwrap();
     let log_file = parent_path.join(PREFIX_LOG_NAME);
@@ -189,6 +191,7 @@ fn main() -> Result<(), Error> {
         args.agent_id.clone(),
         &api,
         &contract_payload,
+        duration,
     );
     // endregion
     Ok(())

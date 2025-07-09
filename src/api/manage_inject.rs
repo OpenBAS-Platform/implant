@@ -1,4 +1,6 @@
+use super::Client;
 use crate::common::error_model::Error;
+use log::info;
 use mailparse::{parse_content_disposition, parse_header};
 use reqwest::blocking::Response;
 use reqwest::header::CONTENT_DISPOSITION;
@@ -7,9 +9,9 @@ use serde_json::json;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
+use std::thread::sleep;
+use std::time::Duration;
 use std::{env, fs, io};
-
-use super::Client;
 
 pub fn write_response<W>(writer: W, response: reqwest::blocking::Response) -> std::io::Result<u64>
 where
@@ -111,6 +113,16 @@ impl Client {
         agent_id: String,
         input: UpdateInput,
     ) -> Result<UpdateInjectResponse, Error> {
+        self.update_status_retry(inject_id, agent_id, input, 5)
+    }
+
+    fn update_status_retry(
+        &self,
+        inject_id: String,
+        agent_id: String,
+        input: UpdateInput,
+        retry: u64,
+    ) -> Result<UpdateInjectResponse, Error> {
         let post_data = json!(input);
         match self
             .post(&format!(
@@ -120,18 +132,33 @@ impl Client {
             .send()
         {
             Ok(response) => {
-                if response.status().is_success() {
-                    response
-                        .json::<UpdateInjectResponse>()
-                        .map_err(|e| Error::Internal(e.to_string()))
-                } else {
-                    let msg = response
-                        .text()
-                        .unwrap_or_else(|_| "Unknown error".to_string());
-                    Err(Error::Api(msg))
-                }
+                self.update_status_response(response, inject_id, agent_id, input, retry)
             }
             Err(err) => Err(Error::Internal(err.to_string())),
+        }
+    }
+
+    fn update_status_response(
+        &self,
+        response: Response,
+        inject_id: String,
+        agent_id: String,
+        input: UpdateInput,
+        retry: u64,
+    ) -> Result<UpdateInjectResponse, Error> {
+        if response.status().is_success() {
+            response
+                .json::<UpdateInjectResponse>()
+                .map_err(|e| Error::Internal(e.to_string()))
+        } else if response.status().is_client_error() && retry > 0 {
+            sleep(Duration::from_secs(1));
+            info!("retry {retry:?} to update status for inject id: {inject_id:?} and agent id: {agent_id:?}");
+            self.update_status_retry(inject_id, agent_id, input, retry - 1)
+        } else {
+            let msg = response
+                .text()
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            Err(Error::Api(msg))
         }
     }
 
