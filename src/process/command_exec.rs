@@ -5,6 +5,7 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::Deserialize;
 
 use crate::common::error_model::Error;
+use crate::handle::handle_command::compute_command;
 use crate::process::exec_utils::is_executor_present;
 
 #[cfg(unix)]
@@ -62,7 +63,8 @@ pub fn decode_command(encoded_command: &str) -> String {
     let decoded_bytes = STANDARD
         .decode(encoded_command)
         .expect("Failed to decode Base64 command");
-    String::from_utf8(decoded_bytes).expect("Decoded command is not valid UTF-8")
+    let decoded = String::from_utf8(decoded_bytes).expect("Decoded command is not valid UTF-8");
+    compute_command(&decoded)
 }
 
 pub fn format_powershell_command(command: String) -> String {

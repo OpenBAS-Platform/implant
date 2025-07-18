@@ -44,13 +44,12 @@ pub fn handle_command(
 ) {
     let command = contract_payload.command_content.clone().unwrap();
     let executor = contract_payload.command_executor.clone().unwrap();
-    let executable_command = compute_command(&command);
     let _ = handle_execution_command(
         "command_execution",
         api,
         inject_id.clone(),
         agent_id.clone(),
-        &executable_command,
+        &command,
         &executor,
         false,
     );
