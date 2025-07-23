@@ -113,7 +113,7 @@ impl Client {
         agent_id: String,
         input: UpdateInput,
     ) -> Result<UpdateInjectResponse, Error> {
-        self.update_status_retry(inject_id, agent_id, input, 5)
+        self.update_status_retry(inject_id, agent_id, input, 20)
     }
 
     fn update_status_retry(
