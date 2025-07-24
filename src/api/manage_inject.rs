@@ -1,6 +1,6 @@
 use super::Client;
 use crate::common::error_model::Error;
-use log::info;
+use log::{error, info};
 use mailparse::{parse_content_disposition, parse_header};
 use reqwest::blocking::Response;
 use reqwest::header::CONTENT_DISPOSITION;
@@ -147,6 +147,7 @@ impl Client {
         retry: u64,
     ) -> Result<UpdateInjectResponse, Error> {
         if response.status().is_success() {
+            info!("response {response:?} to update status for inject id: {inject_id:?} and agent id: {agent_id:?}");
             response
                 .json::<UpdateInjectResponse>()
                 .map_err(|e| Error::Internal(e.to_string()))
@@ -158,6 +159,7 @@ impl Client {
             let msg = response
                 .text()
                 .unwrap_or_else(|_| "Unknown error".to_string());
+            error!("error message {msg:?} to update status for inject id: {inject_id:?} and agent id: {agent_id:?}");
             Err(Error::Api(msg))
         }
     }
