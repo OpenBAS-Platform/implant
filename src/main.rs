@@ -1,7 +1,9 @@
 use clap::{arg, Parser};
-use log::info;
+use log::{error, info};
 use rolling_file::{BasicRollingFileAppender, RollingConditionBasic};
 use std::env;
+use std::ops::Deref;
+use std::panic;
 use std::sync::atomic::AtomicBool;
 use std::time::Instant;
 
@@ -42,6 +44,31 @@ struct Args {
     agent_id: String,
     #[arg(short, long)]
     inject_id: String,
+}
+
+// Get and log all errors from the implant execution
+pub fn set_error_hook() {
+    panic::set_hook(Box::new(|panic_info| {
+        let (filename, line) = panic_info
+            .location()
+            .map(|loc| (loc.file(), loc.line()))
+            .unwrap_or(("<unknown>", 0));
+
+        let cause = panic_info
+            .payload()
+            .downcast_ref::<String>()
+            .map(String::deref);
+
+        let cause = cause.unwrap_or_else(|| {
+            panic_info
+                .payload()
+                .downcast_ref::<&str>()
+                .copied()
+                .unwrap_or("<cause unknown>")
+        });
+
+        error!("An error occurred in file {filename:?} line {line:?}: {cause:?}");
+    }));
 }
 
 pub fn mode() -> String {
@@ -180,6 +207,7 @@ pub fn handle_payload(
 }
 
 fn main() -> Result<(), Error> {
+    set_error_hook();
     // region Init logger
     let duration = Instant::now();
     let current_exe_patch = env::current_exe().unwrap();
