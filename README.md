@@ -1,7 +1,7 @@
 # OpenBAS Implant
 
 [![Website](https://img.shields.io/badge/website-openbas.io-blue.svg)](https://openbas.io)
-[![CircleCI](https://circleci.com/gh/OpenBAS-Platform/implant.svg?style=shield)](https://circleci.com/gh/OpenBAS-Platform/implant/tree/master)
+[![CircleCI](https://circleci.com/gh/OpenBAS-Platform/implant.svg?style=shield)](https://circleci.com/gh/OpenBAS-Platform/implant/tree/main)
 [![GitHub release](https://img.shields.io/github/release/OpenBAS-Platform/implant.svg)](https://github.com/OpenBAS-Platform/implant/releases/latest)
 [![Slack Status](https://img.shields.io/badge/slack-3K%2B%20members-4A154B)](https://community.filigran.io)
 
