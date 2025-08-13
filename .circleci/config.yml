@@ -57,7 +57,7 @@ jobs:
           name: push to jfrog
           command: | 
             $env:version = if ($env:CIRCLE_TAG) { $env:CIRCLE_TAG } else { if ($env:CIRCLE_BRANCH -eq "main") { "latest" } else { "prerelease" } }
-            curl.exe -u samuel.hassine@filigran.io:$env:JFROG_TOKEN -T ./target/release/openbas-implant.exe "https://filigran.jfrog.io/artifactory/openbas-implant/windows/x86_64/openbas-implant-$env:version.exe"
+            curl.exe --fail-with-body -u samuel.hassine@filigran.io:$env:JFROG_TOKEN -T ./target/release/openbas-implant.exe "https://filigran.jfrog.io/artifactory/openbas-implant/windows/x86_64/openbas-implant-$env:version.exe"
       - run: |
           cargo install cargo-cache
           cargo-cache -a clean-unref
@@ -125,7 +125,7 @@ jobs:
           name: push to jfrog
           command: |
             $env:version = if ($env:CIRCLE_TAG) { $env:CIRCLE_TAG } else { if ($env:CIRCLE_BRANCH -eq "main") { "latest" } else { "prerelease" } }
-            curl.exe -u samuel.hassine@filigran.io:$env:JFROG_TOKEN -T ./target/release/openbas-implant.exe "https://filigran.jfrog.io/artifactory/openbas-implant/windows/arm64/openbas-implant-$env:version.exe"
+            curl.exe --fail-with-body -u samuel.hassine@filigran.io:$env:JFROG_TOKEN -T ./target/release/openbas-implant.exe "https://filigran.jfrog.io/artifactory/openbas-implant/windows/arm64/openbas-implant-$env:version.exe"
       - run: |
           cargo install cargo-cache
           cargo-cache -a clean-unref
@@ -186,7 +186,7 @@ jobs:
           name: push to jfrog
           command: | 
             export version=${CIRCLE_TAG:-$( [ "$CIRCLE_BRANCH" = "main" ] && echo "latest" || echo "prerelease" )}
-            curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/x86_64-unknown-linux-musl/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/linux/x86_64/openbas-implant-$version"
+            curl --fail-with-body -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/x86_64-unknown-linux-musl/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/linux/x86_64/openbas-implant-$version"
       - run: |
           cargo install cargo-cache
           cargo-cache -a clean-unref
@@ -249,7 +249,7 @@ jobs:
           name: push to jfrog
           command: |
             export version=${CIRCLE_TAG:-$( [ "$CIRCLE_BRANCH" = "main" ] && echo "latest" || echo "prerelease" )}
-            curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/aarch64-unknown-linux-musl/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/linux/arm64/openbas-implant-$version"
+            curl --fail-with-body -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/aarch64-unknown-linux-musl/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/linux/arm64/openbas-implant-$version"
       - run: |
           cargo install cargo-cache
           cargo-cache -a clean-unref
@@ -306,7 +306,7 @@ jobs:
           name: push to jfrog
           command: |
             export version=${CIRCLE_TAG:-$( [ "$CIRCLE_BRANCH" = "main" ] && echo "latest" || echo "prerelease" )}
-            curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/macos/arm64/openbas-implant-$version"
+            curl --fail-with-body -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/macos/arm64/openbas-implant-$version"
       - run: |
           cargo install --force cargo-cache
           cargo-cache -a clean-unref
@@ -361,7 +361,7 @@ jobs:
           name: push to jfrog
           command: |
             export version=${CIRCLE_TAG:-$( [ "$CIRCLE_BRANCH" = "main" ] && echo "latest" || echo "prerelease" )}
-            curl -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/macos/x86_64/openbas-implant-$version"
+            curl --fail-with-body -usamuel.hassine@filigran.io:$JFROG_TOKEN -T ./target/release/openbas-implant "https://filigran.jfrog.io/artifactory/openbas-implant/macos/x86_64/openbas-implant-$version"
       - run: |
           cargo install --force cargo-cache
           cargo-cache -a clean-unref
