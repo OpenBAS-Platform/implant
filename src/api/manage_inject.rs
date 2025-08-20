@@ -228,7 +228,7 @@ fn get_output_path(filename: &str) -> Result<PathBuf, Error> {
 
     // Resolve the payloads path and create it on the fly
     let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
-    let parent_parent_path = parent_path.parent().ok_or_else(|| {
+    let parent_parent_path = parent_path.parent().unwrap().parent().ok_or_else(|| {
         Error::Internal("Cannot determine parent directory of parent".to_string())
     })?;
     let payloads_path = parent_parent_path.join("payloads").join(folder_name);

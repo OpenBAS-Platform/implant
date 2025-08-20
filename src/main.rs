@@ -217,8 +217,8 @@ fn main() -> Result<(), Error> {
 
     // Resolve the payloads path and create it on the fly
     let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
-    let payloads_path = parent_path.parent().unwrap().join("payloads").join(folder_name);
-    create_dir_all(payloads_path)?;
+    let payloads_path = parent_path.parent().unwrap().parent().unwrap().join("payloads").join(folder_name);
+    create_dir_all(payloads_path).expect("Unable to create payload directory");
 
     let condition = RollingConditionBasic::new().daily();
     let file_appender = BasicRollingFileAppender::new(log_file, condition, 3).unwrap();

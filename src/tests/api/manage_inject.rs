@@ -43,7 +43,7 @@ mod tests {
         let current_exe_path = env::current_exe().unwrap();
         let parent_path = current_exe_path.parent().unwrap();
         let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
-        let payloads_path = parent_path.parent().unwrap().join("payloads").join(folder_name);
+        let payloads_path = parent_path.parent().unwrap().parent().unwrap().join("payloads").join(folder_name);
         create_dir_all(payloads_path).expect("Cannot create payloads directory");
 
         let mut server = mockito::Server::new();
@@ -76,7 +76,7 @@ mod tests {
         let current_exe_path = std::env::current_exe().unwrap();
         let parent_path = current_exe_path.parent().unwrap();
         let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
-        let payloads_path = parent_path.parent().unwrap().join("payloads").join(folder_name);
+        let payloads_path = parent_path.parent().unwrap().parent().unwrap().join("payloads").join(folder_name);
         let expected_file_path = payloads_path.join(filename);
 
         assert!(expected_file_path.exists());
