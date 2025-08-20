@@ -6,7 +6,7 @@ use reqwest::blocking::Response;
 use reqwest::header::CONTENT_DISPOSITION;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::fs::File;
+use std::fs::{File};
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 use std::thread::sleep;
@@ -222,8 +222,15 @@ fn extract_filename(response: &Response) -> Result<String, Error> {
 fn get_output_path(filename: &str) -> Result<PathBuf, Error> {
     let current_exe_path = env::current_exe()
         .map_err(|e| Error::Internal(format!("Cannot get current executable path: {e}")))?;
-    let parent_dir = current_exe_path.parent().ok_or_else(|| {
+    let parent_path = current_exe_path.parent().ok_or_else(|| {
         Error::Internal("Cannot determine executable parent directory".to_string())
     })?;
-    Ok(parent_dir.join(filename))
+
+    // Resolve the payloads path and create it on the fly
+    let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
+    let parent_parent_path = parent_path.parent().ok_or_else(|| {
+        Error::Internal("Cannot determine parent directory of parent".to_string())
+    })?;
+    let payloads_path = parent_parent_path.join("payloads").join(folder_name);
+    Ok(payloads_path.join(filename))
 }

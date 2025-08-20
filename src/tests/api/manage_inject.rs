@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod tests {
     use mockito;
-    use std::fs;
+    use std::{env, fs};
     use std::io::Read;
+    use std::fs::create_dir_all;
 
     #[test]
     fn test_download_file_in_memory_success() {
@@ -38,7 +39,13 @@ mod tests {
 
     #[test]
     fn test_download_file_to_disk_success() {
-        // -- PREPARE --
+        // Resolve the payloads path and create it on the fly
+        let current_exe_path = env::current_exe().unwrap();
+        let parent_path = current_exe_path.parent().unwrap();
+        let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
+        let payloads_path = parent_path.parent().unwrap().join("payloads").join(folder_name);
+        create_dir_all(payloads_path).expect("Cannot create payloads directory");
+
         let mut server = mockito::Server::new();
         let server_url = server.url();
 
@@ -67,7 +74,10 @@ mod tests {
         assert!(result.is_ok());
 
         let current_exe_path = std::env::current_exe().unwrap();
-        let expected_file_path = current_exe_path.parent().unwrap().join(filename);
+        let parent_path = current_exe_path.parent().unwrap();
+        let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
+        let payloads_path = parent_path.parent().unwrap().join("payloads").join(folder_name);
+        let expected_file_path = payloads_path.join(filename);
 
         assert!(expected_file_path.exists());
 
