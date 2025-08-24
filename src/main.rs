@@ -3,6 +3,7 @@ use log::{error, info};
 use rolling_file::{BasicRollingFileAppender, RollingConditionBasic};
 use std::env;
 use std::ops::Deref;
+use std::fs::create_dir_all;
 use std::panic;
 use std::sync::atomic::AtomicBool;
 use std::time::Instant;
@@ -210,9 +211,15 @@ fn main() -> Result<(), Error> {
     set_error_hook();
     // region Init logger
     let duration = Instant::now();
-    let current_exe_patch = env::current_exe().unwrap();
-    let parent_path = current_exe_patch.parent().unwrap();
+    let current_exe_path = env::current_exe().unwrap();
+    let parent_path = current_exe_path.parent().unwrap();
     let log_file = parent_path.join(PREFIX_LOG_NAME);
+
+    // Resolve the payloads path and create it on the fly
+    let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
+    let payloads_path = parent_path.parent().unwrap().parent().unwrap().join("payloads").join(folder_name);
+    create_dir_all(payloads_path).expect("Unable to create payload directory");
+
     let condition = RollingConditionBasic::new().daily();
     let file_appender = BasicRollingFileAppender::new(log_file, condition, 3).unwrap();
     let (file_writer, _guard) = tracing_appender::non_blocking(file_appender);

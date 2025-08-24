@@ -7,8 +7,17 @@ use crate::process::command_exec::ExecutionResult;
 use crate::process::exec_utils::is_executor_present;
 
 fn compute_working_file(filename: &str) -> PathBuf {
-    let current_exe_patch = env::current_exe().unwrap();
-    let executable_path = current_exe_patch.parent().unwrap();
+    let current_exe_path = env::current_exe()
+        .map_err(|e| Error::Internal(format!("Cannot get current executable path: {e}"))).expect("Cannot get current executable path");
+    let parent_path = current_exe_path.parent().ok_or_else(|| {
+        Error::Internal("Cannot determine executable parent directory".to_string())
+    }).expect("Cannot determine executable parent directory");
+    // Resolve the payloads path and create it on the fly
+    let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
+    let parent_parent_path = parent_path.parent().unwrap().parent().ok_or_else(|| {
+        Error::Internal("Cannot determine parent directory of parent".to_string())
+    }).expect("Cannot determine parent directory of parent");
+    let executable_path = parent_parent_path.join("payloads").join(folder_name);
     executable_path.join(filename)
 }
 

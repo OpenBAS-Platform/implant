@@ -10,8 +10,11 @@ use crate::handle::handle_execution::handle_execution_result;
 use crate::process::command_exec::command_execution;
 
 fn compute_working_dir() -> PathBuf {
-    let current_exe_patch = env::current_exe().unwrap();
-    current_exe_patch.parent().unwrap().to_path_buf()
+    let current_exe_path = env::current_exe().unwrap();
+    let parent_path = current_exe_path.parent().unwrap();
+    let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
+    let payloads_path = parent_path.parent().unwrap().parent().unwrap().join("payloads");
+    payloads_path.join(folder_name)
 }
 
 pub fn compute_command(command: &str) -> String {
