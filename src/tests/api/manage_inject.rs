@@ -2,9 +2,9 @@
 mod tests {
     use crate::process::exec_utils::decode_filename;
     use mockito;
-    use std::{env, fs};
-    use std::io::Read;
     use std::fs::create_dir_all;
+    use std::io::Read;
+    use std::{env, fs};
 
     #[test]
     fn test_download_file_in_memory_success() {
