@@ -2,8 +2,8 @@ use clap::{arg, Parser};
 use log::{error, info};
 use rolling_file::{BasicRollingFileAppender, RollingConditionBasic};
 use std::env;
-use std::ops::Deref;
 use std::fs::create_dir_all;
+use std::ops::Deref;
 use std::panic;
 use std::sync::atomic::AtomicBool;
 use std::time::Instant;
@@ -217,7 +217,13 @@ fn main() -> Result<(), Error> {
 
     // Resolve the payloads path and create it on the fly
     let folder_name = parent_path.file_name().unwrap().to_str().unwrap();
-    let payloads_path = parent_path.parent().unwrap().parent().unwrap().join("payloads").join(folder_name);
+    let payloads_path = parent_path
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("payloads")
+        .join(folder_name);
     create_dir_all(payloads_path).expect("Unable to create payload directory");
 
     let condition = RollingConditionBasic::new().daily();
